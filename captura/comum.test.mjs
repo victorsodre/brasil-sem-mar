@@ -6,7 +6,16 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import { lerArgs, numero, montarUrl, precisaServidor, pegarCadeado, bytesDiferentes, nomeQuadro } from './comum.mjs';
+import { lerArgs, numero, montarUrl, precisaServidor, pegarCadeado, bytesDiferentes, nomeQuadro, conferirRenderizador } from './comum.mjs';
+
+test('renderizador: SwiftShader aborta, sem Metal avisa, Metal passa', () => {
+  assert.throws(() => conferirRenderizador('Google SwiftShader'), /por software/);
+  assert.throws(() => conferirRenderizador('ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero)), SwiftShader driver)'), /SwiftShader/);
+  assert.throws(() => conferirRenderizador('llvmpipe (LLVM 15.0.7, 256 bits)'), /por software/);
+  assert.equal(conferirRenderizador('ANGLE (AMD, ANGLE Metal Renderer: AMD Radeon Pro Vega 56, Unspecified Version)'), null);
+  assert.match(conferirRenderizador('ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0, D3D11)'), /sem Metal/);
+  assert.match(conferirRenderizador(null), /não informado/);
+});
 
 test('lerArgs: posicionais, --chave valor, --chave=valor e flags', () => {
   const { posicionais, opcoes } = lerArgs(['002', '--fps', '30', '--ate=fim', '--url', '/captura/stub/index.html', '--ajuda']);

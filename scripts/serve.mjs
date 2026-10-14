@@ -20,30 +20,45 @@ const MIME = {
 };
 
 export function criarServidor(raiz = RAIZ) {
+  // raiz real (sem symlink): um link dentro da raiz apontando para fora também fica fora
+  let raizReal = raiz;
+  try { raizReal = fs.realpathSync(raiz); } catch { /* raiz inexistente: todo pedido dá 404 */ }
+  const dentro = (abs) => abs === raizReal || abs.startsWith(raizReal + path.sep);
   return http.createServer((req, res) => {
     try {
       const url = new URL(req.url, 'http://localhost');
       let rel = decodeURIComponent(url.pathname);
       if (rel.endsWith('/')) rel += 'index.html';
-      const abs = path.normalize(path.join(raiz, rel));
-      if (!abs.startsWith(raiz + path.sep) && abs !== raiz) { res.writeHead(403); res.end('fora da raiz'); return; }
+      const abs = path.normalize(path.join(raizReal, rel));
+      if (!dentro(abs)) { res.writeHead(403); res.end('fora da raiz'); return; }
       fs.stat(abs, (err, st) => {
         if (err || !st.isFile()) {
           if (!err && st.isDirectory()) { res.writeHead(301, { Location: url.pathname + '/' }); res.end(); return; }
           res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); res.end('não achei ' + rel); return;
         }
-        const tipo = MIME[path.extname(abs).toLowerCase()] || 'application/octet-stream';
-        res.writeHead(200, { 'Content-Type': tipo, 'Content-Length': st.size, 'Cache-Control': 'no-cache', 'Access-Control-Allow-Origin': '*' });
-        if (req.method === 'HEAD') { res.end(); return; }
-        fs.createReadStream(abs).pipe(res);
+        fs.realpath(abs, (errReal, real) => {
+          if (errReal || !dentro(real)) { res.writeHead(403); res.end('fora da raiz'); return; }
+          const tipo = MIME[path.extname(abs).toLowerCase()] || 'application/octet-stream';
+          res.writeHead(200, { 'Content-Type': tipo, 'Content-Length': st.size, 'Cache-Control': 'no-cache', 'Access-Control-Allow-Origin': '*' });
+          if (req.method === 'HEAD') { res.end(); return; }
+          fs.createReadStream(real).pipe(res);
+        });
       });
     } catch (e) { res.writeHead(500); res.end(String(e)); }
   });
 }
 
-const ehPrincipal = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+// Programa principal também quando chamado por symlink (realpath dos dois lados; ver cli/rede.mjs).
+// Sem importar cli/ para o servidor continuar sem dependência nenhuma.
+const ehPrincipal = (() => {
+  try { return Boolean(process.argv[1]) && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url)); } catch { return false; }
+})();
 if (ehPrincipal) {
   const srv = criarServidor();
+  srv.once('error', (e) => {
+    console.error(e.code === 'EADDRINUSE' ? `porta ${PORTA} ocupada; use --porta <outra>` : `erro no servidor: ${e.message}`);
+    process.exitCode = 1;
+  });
   srv.listen(PORTA, '127.0.0.1', () => console.log(`brasil-sem-mar: http://127.0.0.1:${PORTA}/  (raiz ${RAIZ})`));
   const sair = () => srv.close(() => process.exit(0));
   process.on('SIGINT', sair); process.on('SIGTERM', sair);

@@ -27,7 +27,7 @@ Autor correspondente: Gabriel Tagliaro, Instituto Oceanográfico da Universidade
 ## Fatos do paper e do MGDS (lidos em 13/10/2026)
 
 - Grade a 40 m de resolução horizontal, em coordenadas geográficas, formato ESRI ASCII grid (MGDS). O paper não repete o "40 m"; o único 40 no texto é a frequência de ping.
-- "multibeam bathymetry was not performed in water depths shallower than 200 m" (texto); a legenda da figura 2 diz "<100 m". Ou seja: o topo do Banco Besnard (30 m) e o do Fernando de Almeida (38 m) não estão na grade.
+- "multibeam bathymetry was not performed in water depths shallower than 200 m" (texto); a legenda da figura 2 diz "<100 m". Ou seja: o topo do Banco Besnard (30 m) não está na grade. (O Banco Fernando de Almeida, a 38 m, fica "na região da cadeia montanhosa de Fernando de Noronha" segundo a Pesquisa FAPESP: fora da cadeia Vitória-Trindade e fora deste lugar.)
 - "the VTR seamount chain extends 1200 km offshore the Brazilian coast".
 - O dado "is freely available at the Marine Geoscience Data System" (agradecimentos); grades "in format ESRI ASCII (10.26022/IEDA/331479)".
 - Como obter: a página de arquivos do MGDS tem os botões "Download Selected File(s)" e "Request Selected File(s)" ("Request a DVD or and FTP session"). Na leitura automática de 13/10/2026 a lista de arquivos de grade veio vazia; o crítico de construção da nota de 13/10 registrou 404 no link de dados. Caminho que resta: "Request" no MGDS (DVD ou FTP) ou e-mail ao autor correspondente. Documentos de apoio listados na página: `readme_VTRCC.txt`, `Methodology_Report_VTRCC.pdf`.

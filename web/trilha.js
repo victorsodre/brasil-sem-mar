@@ -65,8 +65,17 @@ function curvaCentripeta(pontos) {
 }
 
 export function prepararTrilha(trilha) {
+  if (!trilha || !Array.isArray(trilha.keyframes) || trilha.keyframes.length === 0) {
+    throw new Error('camera.json precisa de "keyframes": lista com pelo menos 1 keyframe {t, pos, alvo}');
+  }
   const ks = [...trilha.keyframes].sort((a, b) => a.t - b.t);
   const ts = ks.map((k) => k.t);
+  for (let i = 0; i < ks.length; i++) {
+    const k = ks[i];
+    const vetor = (v) => Array.isArray(v) && v.length === 3 && v.every(Number.isFinite);
+    if (!Number.isFinite(k.t) || !vetor(k.pos) || !vetor(k.alvo)) throw new Error(`camera.json: keyframe ${i} precisa de t numérico, pos [x, y, z] e alvo [x, y, z]`);
+    if (i > 0 && !(ts[i] > ts[i - 1])) throw new Error(`camera.json: os t dos keyframes têm de ser crescentes (t=${ts[i - 1]} e t=${ts[i]} repetidos ou fora de ordem)`);
+  }
   const cPos = curvaCentripeta(ks.map((k) => k.pos));
   const cAlvo = curvaCentripeta(ks.map((k) => k.alvo));
   const uPos = hermiteMonotona(ts, cPos.nos);
@@ -88,9 +97,13 @@ export function prepararTrilha(trilha) {
   };
 }
 
-// trilha padrão quando o lugar não tem camera.json: órbita baixa e lenta
-export function trilhaPadrao(kmW, kmH, nivelMin) {
-  const r = Math.max(kmW, kmH) * 0.6, y = Math.max(kmW, kmH) * 0.08;
+// trilha padrão quando o lugar não tem camera.json: órbita baixa e lenta. O raio fica dentro
+// da névoa (a 0,45/nevoa a névoa é de 18 %; a 0,6 da largura de um lugar de 1.300 km seria 95 %,
+// quadro preto) e a altura vem da elevação máxima exagerada, não da largura da caixa (numa caixa
+// de 21 km a 15x a câmera voava entre espigões).
+export function trilhaPadrao(kmW, kmH, nivelMin, { nevoa = 0.0022, yTopo = 0 } = {}) {
+  const r = Math.min(Math.max(kmW, kmH) * 0.6, 0.45 / nevoa);
+  const y = Math.max(yTopo * 1.2, r * 0.08);
   const ks = [];
   for (let i = 0; i <= 8; i++) {
     const a = (i / 8) * Math.PI * 2 * 0.75 - Math.PI / 2;

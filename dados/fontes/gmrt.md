@@ -12,7 +12,7 @@ Global Multi-Resolution Topography: síntese de batimetria multifeixe (cerca de 
 | Notícias e versões | https://www.gmrt.org/about/news.php |
 | Fontes que compõem o GMRT | https://www.gmrt.org/contributors/index.php |
 
-Parâmetros (documentação, lida em 13/10/2026): `north`/`south`/`west`/`east` (ou `maxlatitude` etc.); `layer=topo` (grid sem máscara: multifeixe onde há, base GEBCO no resto) ou `layer=topo-mask` (só o multifeixe, NaN no resto); `format` em `netcdf`, `coards`, `esriascii` ou `geotiff`; `resolution` em `default`, `med`, `high`, `max` (`max` é a resolução mais perto de 100 m por nó sem passar de 2 GB); `mresolution` em metros por nó (default 200; se vier, `resolution` é ignorado). Limite: 2 GB por pedido, cerca de 20 por 20 graus a 100 m por nó.
+Parâmetros (documentação, lida em 13/10/2026): `north`/`south`/`west`/`east` (ou `maxlatitude` etc.); `layer=topo` (grid sem máscara: multifeixe onde há, base GEBCO no resto) ou `layer=topo-mask` (só o multifeixe, NaN no resto); `format` em `netcdf`, `coards`, `esriascii` ou `geotiff`; `resolution` em `default`, `med`, `high`, `max` (`max` é a resolução mais perto de 100 m por nó sem passar de 2 GB; `default` é a maior resolução com menos de 1.000 nós de largura, o que bate com os 713 x 141 medidos sem o parâmetro); `mresolution` em metros por nó (a documentação usa 200 só como exemplo e não declara um padrão; se vier, `resolution` é ignorado). Limite: 2 GB por pedido, cerca de 20 por 20 graus a 100 m por nó; a CLI recusa antes de pedir um GeoTIFF estimado acima de 200 MB.
 
 A documentação do GridServer ainda cita "GEBCO_08" como base do grid sem máscara; a página de notícias diz que a versão 4.5.0 (junho de 2026) usa a base GEBCO 2026. Veja `gebco.md`.
 
@@ -24,7 +24,7 @@ Citação exigida (termos de uso, texto como publicado):
 
 > Ryan, W. B. F., S.M. Carbotte, J. Coplan, S. O'Hara, A. Melkonian, R. Arko, R.A. Weissel, V. Ferrini, A. Goodwillie, F. Nitsche, J. Bonczkowski, and R. Zemsky (2009), Global Multi-Resolution Topography (GMRT) synthesis data set, Geochem. Geophys. Geosyst., 10, Q03014, doi:10.1029/2008GC002332.
 
-DOI do conjunto de dados: 10.1594/IEDA.100001. Em `terreno.json` o campo `atribuicao` leva a forma curta "Ryan, W.B.F. et al. (2009), Global Multi-Resolution Topography synthesis, Geochem. Geophys. Geosyst., 10, Q03014".
+DOI do conjunto de dados: 10.1594/IEDA.100001. Em `terreno.json` o campo `atribuicao` leva a citação exata acima (desde 14/10/2026; o `terreno.json` de 13/10 trazia uma forma curta, com "J.O. Coplan" e "e R. Zemsky"). A página mostra "GMRT" com link para https://www.gmrt.org/ (os termos pedem byline/link) e o texto inteiro em "fontes e licenças".
 
 ## Versões (página de notícias, lida em 13/10/2026)
 

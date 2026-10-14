@@ -9,7 +9,7 @@
   "homepage": "https://victorsodre.github.io/brasil-sem-mar/",
   "engines": { "node": ">=22" },
   "bin": { "brasil-sem-mar": "cli/index.mjs" },
-  "files": ["cli", "README.md", "LICENSE"],
+  "files": ["cli", "!cli/*.test.mjs", "README.md", "LICENSE"],
   "scripts": {
     "lugar": "node cli/index.mjs",
     "serve": "node scripts/serve.mjs",

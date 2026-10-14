@@ -14,7 +14,8 @@ import { spawn } from 'node:child_process';
 import {
   RAIZ, CADEADO_ESTEIRA, CADEADO_EH_DE_TESTE, MUTEX_QUADRO, ARGS_GPU, log, fmt, arred, agora, sha256, nomeQuadro,
   lerArgs, numero, criarLimpeza, pegarCadeadoEsteira, pegarMutexQuadro, subirServidor, precisaServidor, montarUrl,
-  abrirNavegador, prepararPagina, abrirCena, capturarQuadro, lerMetricas, bytesDiferentes, pixelsDiferentes,
+  abrirNavegador, prepararPagina, abrirCena, capturarQuadro, lerMetricas, lerRenderizador, conferirRenderizador,
+  bytesDiferentes, pixelsDiferentes,
 } from './comum.mjs';
 
 const USO = `uso: node captura/capture.mjs <slug> [--fps 30] [--de 0] [--ate 10] [--largura 1080] [--altura 1920] [--saida captura/saida/<slug>] [--url caminho-ou-http] [--espera-max 120] [--timeout 180]
@@ -100,8 +101,8 @@ async function main() {
     slug, comando: ['node', ...process.argv.slice(1).map((a) => (a.startsWith(RAIZ + path.sep) ? path.relative(RAIZ, a) : a))].join(' '),
     largura, altura, fps, de, ate, quadros: 0, duracao_s: 0, url: null, saida: path.relative(RAIZ, saida),
     cadeado: { esteira: CADEADO_ESTEIRA, de_teste: CADEADO_EH_DE_TESTE, mutex: MUTEX_QUADRO, esperou_ms: 0 },
-    ambiente: { node: process.version, chromium: null, args_gpu: ARGS_GPU },
-    tempos_ms: {}, determinismo: null, metrics: null, estado_final: null, erros_pagina: [], mp4: null, lista: [],
+    ambiente: { node: process.version, chromium: null, args_gpu: ARGS_GPU, webgl_renderer: null },
+    tempos_ms: {}, determinismo: null, metrics: null, estado_final: null, erros_pagina: [], avisos_pagina: [], mp4: null, lista: [],
     gerado_em: null,
   };
   let diffTotal = -1;
@@ -129,10 +130,15 @@ async function main() {
     const nav = await abrirNavegador({ largura, altura });
     limpeza.adicionar(() => nav.browser.close());
     relatorio.ambiente.chromium = nav.versao;
-    log(`Chromium ${nav.versao} (Metal) · ${largura}x${altura} dpr 1 · ${url}`);
+    log(`Chromium ${nav.versao} · ${largura}x${altura} dpr 1 · ${url}`);
     const tempo = await abrirCena(nav.page, url, { timeout_ms });
     relatorio.tempos_ms.carga_pagina = arred(tempo.carga_ms);
     relatorio.tempos_ms.cena_pronta = arred(tempo.pronto_ms);
+    // o renderizador de verdade, medido na página: SwiftShader aborta, sem Metal avisa
+    relatorio.ambiente.webgl_renderer = await lerRenderizador(nav.page);
+    const avisoGpu = conferirRenderizador(relatorio.ambiente.webgl_renderer);
+    log(`renderizador WebGL: ${relatorio.ambiente.webgl_renderer || '?'}${avisoGpu ? ' · ATENÇÃO: ' + avisoGpu : ''}`);
+    if (avisoGpu) relatorio.avisos_pagina.push(avisoGpu);
     const duracao = await nav.page.evaluate(() => (window.__bsm.duration ? window.__bsm.duration() : null));
     log(`cena pronta em ${fmt(tempo.pronto_ms)} ms · duração declarada ${duracao === null ? '?' : fmt(duracao, 2) + ' s'}`);
     if (ateFim) {
@@ -145,11 +151,16 @@ async function main() {
     relatorio.quadros = n;
     relatorio.duracao_s = arred(n / fps, 3);
 
-    // 5. sequência (quadros antigos com o mesmo nome saem antes, senão o ffmpeg emenda)
+    // 5. sequência (quadros antigos com o mesmo nome saem antes, senão o ffmpeg emenda).
+    // Só apaga dentro de captura/saida/: um --saida /tmp apagaria q_*.png de terceiros.
     fs.mkdirSync(saida, { recursive: true });
     const antigos = fs.readdirSync(saida).filter((f) => /^q_\d{6}\.png$/.test(f));
-    for (const f of antigos) fs.unlinkSync(path.join(saida, f));
-    if (antigos.length) log(`${antigos.length} quadros antigos apagados em ${path.relative(RAIZ, saida)}`);
+    if (antigos.length) {
+      const dentro = path.resolve(saida).startsWith(path.join(RAIZ, 'captura', 'saida') + path.sep);
+      if (!dentro) throw new Error(`${saida} já tem ${antigos.length} quadro(s) q_*.png e fica fora de captura/saida/: esvazie a pasta você mesmo (não apago q_*.png fora de captura/saida/)`);
+      for (const f of antigos) fs.unlinkSync(path.join(saida, f));
+      log(`${antigos.length} quadros antigos apagados em ${path.relative(RAIZ, saida)}`);
+    }
     log(`capturando ${n} quadros: t de ${fmt(de, 2)} s a ${fmt(ate, 2)} s a ${fps} fps → ${path.relative(RAIZ, saida)}`);
     const lista = [];
     const t_seq = agora();
@@ -197,12 +208,14 @@ async function main() {
     diffTotal = comparacoes.reduce((a, c) => a + c.bytes_diferentes, 0);
     relatorio.determinismo = { quadros: escolhidos, bytes_diferentes: diffTotal, ok: diffTotal === 0, pagina_nova: true, comparacoes, ms: arred(agora() - t_det) };
     relatorio.erros_pagina = [...nav.erros, ...pagina2.erros];
+    relatorio.avisos_pagina.push(...nav.avisos, ...pagina2.avisos);
     if (diffTotal === 0) log(`determinismo: ${escolhidos.length} quadros recapturados em página nova, 0 bytes diferentes`);
     else log(`ATENÇÃO determinismo: ${fmt(diffTotal)} bytes diferentes (${comparacoes.map((c) => `q${c.i}: ${fmt(c.pixels_diferentes)} px`).join(', ')})`);
     if (relatorio.erros_pagina.length) {
       log(`ATENÇÃO: ${relatorio.erros_pagina.length} erro(s) na página:`);
       for (const e of relatorio.erros_pagina.slice(0, 10)) log('  ! ' + e.slice(0, 300));
     }
+    for (const a of relatorio.avisos_pagina) log(`aviso: ${a.slice(0, 300)}`);
 
     // navegador e servidor fechados antes do ffmpeg: um processo pesado por vez
     await nav.browser.close();

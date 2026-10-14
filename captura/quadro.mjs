@@ -11,6 +11,7 @@ import path from 'node:path';
 import {
   RAIZ, MUTEX_QUADRO, log, fmt, arred, agora, lerArgs, numero, criarLimpeza, pegarMutexQuadro,
   subirServidor, precisaServidor, montarUrl, abrirNavegador, abrirCena, capturarQuadro, lerMetricas,
+  lerRenderizador, conferirRenderizador,
 } from './comum.mjs';
 
 const USO = `uso: node captura/quadro.mjs <slug> [--t 0] [--largura 1080] [--altura 1920] [--saida arquivo.png] [--url caminho-ou-http] [--timeout 180]
@@ -48,8 +49,11 @@ async function main() {
     const url = montarUrl({ url: opcoes.url, base, slug, t: tempos[0] });
     const nav = await abrirNavegador({ largura, altura });
     limpeza.adicionar(() => nav.browser.close());
-    log(`Chromium ${nav.versao} (Metal) · ${largura}x${altura} dpr 1 · ${url}`);
+    log(`Chromium ${nav.versao} · ${largura}x${altura} dpr 1 · ${url}`);
     const tempo = await abrirCena(nav.page, url, { timeout_ms });
+    const renderizador = await lerRenderizador(nav.page);
+    const avisoGpu = conferirRenderizador(renderizador);   // SwiftShader aborta aqui
+    log(`renderizador WebGL: ${renderizador || '?'}${avisoGpu ? ' · ATENÇÃO: ' + avisoGpu : ''}`);
     log(`cena pronta em ${fmt(tempo.pronto_ms)} ms (página carregada em ${fmt(tempo.carga_ms)} ms)`);
 
     const resultados = [];
@@ -66,7 +70,9 @@ async function main() {
       log(`ATENÇÃO: ${nav.erros.length} erro(s) na página:`);
       for (const e of nav.erros.slice(0, 10)) log('  ! ' + e.slice(0, 300));
     }
-    console.log(JSON.stringify({ slug, url, largura, altura, quadros: resultados, erros_pagina: nav.erros, total_ms: arred(agora() - inicio) }));
+    const avisos = [...nav.avisos, ...(avisoGpu ? [avisoGpu] : [])];
+    for (const a of avisos) log(`aviso: ${a.slice(0, 300)}`);
+    console.log(JSON.stringify({ slug, url, largura, altura, renderizador, quadros: resultados, erros_pagina: nav.erros, avisos_pagina: avisos, total_ms: arred(agora() - inicio) }));
     process.exitCode = nav.erros.length ? 2 : 0;
   } finally {
     await limpeza.limpar();

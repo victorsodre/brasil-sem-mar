@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import { pipeline } from 'node:stream/promises';
 import { Readable, Transform } from 'node:stream';
 import { agoraIso } from './terrain.mjs';
@@ -10,6 +11,18 @@ export const PACOTE = JSON.parse(fs.readFileSync(new URL('../package.json', impo
 export const USER_AGENT = `brasil-sem-mar/${PACOTE.version} (${PACOTE.homepage || 'https://github.com/victorsodre/brasil-sem-mar'})`;
 export const TIMEOUT_PADRAO_MS = 10 * 60 * 1000;
 export const TENTATIVAS_PADRAO = 2;
+
+// Verdadeiro quando o módulo é o programa principal, também quando chamado por symlink
+// (o npm instala o bin como node_modules/.bin/brasil-sem-mar -> ../brasil-sem-mar/cli/index.mjs:
+// process.argv[1] traz o caminho do link, import.meta.url o caminho real; comparar por path.resolve
+// nunca batia e `npx brasil-sem-mar` saía mudo com código 0).
+export function ehPrincipal(metaUrl, argv1 = process.argv[1]) {
+  try {
+    return Boolean(argv1) && fs.realpathSync(argv1) === fs.realpathSync(fileURLToPath(metaUrl));
+  } catch {
+    return false;
+  }
+}
 
 export function hashCurto(texto, n = 12) {
   return crypto.createHash('sha256').update(String(texto)).digest('hex').slice(0, n);

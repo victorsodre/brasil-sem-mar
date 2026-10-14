@@ -33,15 +33,26 @@ export function kmDoBbox(bbox) {
   return { largura, altura, lat_centro: latC };
 }
 
+// Teto da grade de saída: a altura sai da proporção do bbox e, sem teto, uma caixa alta e estreita
+// (um erro de digitação no --bbox basta) virava centenas de milhões de nós e um pedido de gigabytes
+// ao GridServer. Acima de ALTURA_MAX_NOS a largura é reduzida na mesma proporção.
+export const ALTURA_MAX_NOS = 4096;
+export const KM_MIN_CAIXA = 1;
+
 // Largura = largura_max_nos; altura pela proporção do bbox em km (no centro do bbox).
 // Os nós são centros de célula: nó (i, j) fica em lon = oeste + (i + 0,5) * dlon, lat = norte - (j + 0,5) * dlat.
 export function calcularGrade(bbox, larguraMax) {
   validarBbox(bbox);
-  const largura = Math.floor(Number(larguraMax));
+  let largura = Math.floor(Number(larguraMax));
   if (!Number.isFinite(largura) || largura < 2) throw new Error(`largura inválida: ${larguraMax} (mínimo 2 nós)`);
   const km = kmDoBbox(bbox);
   if (!(km.largura > 0)) throw new Error('bbox inválido: largura em km deu zero (bbox no polo?)');
-  const altura = Math.max(2, Math.round(largura * km.altura / km.largura));
+  if (km.largura < KM_MIN_CAIXA || km.altura < KM_MIN_CAIXA) throw new Error(`bbox inválido: caixa de ${km.largura.toFixed(3)} x ${km.altura.toFixed(3)} km; o mínimo é ${KM_MIN_CAIXA} km em cada eixo`);
+  let altura = Math.max(2, Math.round(largura * km.altura / km.largura));
+  if (altura > ALTURA_MAX_NOS) {
+    largura = Math.max(2, Math.floor(largura * ALTURA_MAX_NOS / altura));
+    altura = Math.max(2, Math.min(ALTURA_MAX_NOS, Math.round(largura * km.altura / km.largura)));
+  }
   const dLon = (bbox.leste - bbox.oeste) / largura;
   const dLat = (bbox.norte - bbox.sul) / altura;
   return {
@@ -71,24 +82,33 @@ export function decodificarAltura(r, g, b) {
   return TERRAIN_RGB_BASE + (r * 65536 + g * 256 + b) * TERRAIN_RGB_PASSO;
 }
 
+// Limites do Terrain-RGB: abaixo de -10.000 m e acima de 1.667.721,5 m o valor prende (clamp silencioso).
+export const TERRAIN_RGB_MIN_M = TERRAIN_RGB_BASE;
+export const TERRAIN_RGB_MAX_M = TERRAIN_RGB_BASE + 0xffffff * TERRAIN_RGB_PASSO;
+
 // Float32Array (linha 0 = norte, coluna 0 = oeste) -> Buffer RGB sem alpha, 3 bytes por nó.
-export function codificarTerrainRgb(alturas, largura, altura) {
+// `clampados` (opcional): objeto onde entram as contagens { abaixo, acima } dos nós presos no limite.
+export function codificarTerrainRgb(alturas, largura, altura, clampados = null) {
   const n = largura * altura;
   if (alturas.length !== n) throw new Error(`codificarTerrainRgb: ${alturas.length} valores para uma grade ${largura}x${altura}`);
   const rgb = Buffer.alloc(n * 3);
+  let abaixo = 0, acima = 0;
   for (let k = 0; k < n; k++) {
     const h = alturas[k];
     if (h !== h) throw new Error(`codificarTerrainRgb: NaN no nó ${k}; preencha os buracos antes de codificar`);
+    if (h < TERRAIN_RGB_MIN_M - TERRAIN_RGB_PASSO / 2) abaixo++;
+    else if (h > TERRAIN_RGB_MAX_M + TERRAIN_RGB_PASSO / 2) acima++;
     const v = codificarAltura(h);
     rgb[k * 3] = (v >>> 16) & 255;
     rgb[k * 3 + 1] = (v >>> 8) & 255;
     rgb[k * 3 + 2] = v & 255;
   }
+  if (clampados) { clampados.abaixo = abaixo; clampados.acima = acima; }
   return rgb;
 }
 
-export function escreverTerrenoPng(caminho, alturas, largura, altura) {
-  const rgb = codificarTerrainRgb(alturas, largura, altura);
+export function escreverTerrenoPng(caminho, alturas, largura, altura, clampados = null) {
+  const rgb = codificarTerrainRgb(alturas, largura, altura, clampados);
   const png = PNG.sync.write({ width: largura, height: altura, data: rgb }, { colorType: 2, inputColorType: 2, inputHasAlpha: false, deflateLevel: 9 });
   fs.mkdirSync(path.dirname(caminho), { recursive: true });
   fs.writeFileSync(caminho, png);

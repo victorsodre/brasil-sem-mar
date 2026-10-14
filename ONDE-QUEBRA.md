@@ -4,7 +4,7 @@ Lista honesta. Cada item diz o que aparece na tela, de onde vem e o que já foi 
 
 ## 1. Emendas de tile (Copernicus)
 
-O Copernicus DEM vem em tiles de 1 grau por 1 grau, cada um um COG com seus próprios overviews. Dois tiles vizinhos lidos em níveis de overview diferentes não casam na borda: aparece um degrau ou uma costura reta na linha do grau. Regra: um lugar usa o mesmo nível de overview em todos os tiles (a 002 usou o overview 3 nos 6 tiles de terra), e a reamostragem para a grade comum é feita depois da fusão, não tile a tile. Os overviews não têm transformação afim própria (fato medido em 13/10/2026): posicionar pelo bbox da imagem 0 e a largura do overview, senão o tile anda meio pixel e a costura vira um muro.
+O Copernicus DEM vem em tiles de 1 grau por 1 grau, cada um, um COG com seus próprios overviews. Dois tiles vizinhos lidos em níveis de overview diferentes não casam na borda: aparece um degrau ou uma costura reta na linha do grau. Regra: um lugar usa o mesmo nível de overview em todos os tiles (a 002 usou o overview 3 nos 6 tiles de terra), e a reamostragem para a grade comum é feita depois da fusão, não tile a tile. Os overviews não têm transformação afim própria (fato medido em 13/10/2026): posicionar pelo bbox da imagem 0 e a largura do overview, senão o tile anda meio pixel e a costura vira um muro.
 
 ## 2. Costa grosseira do GEBCO
 
@@ -20,7 +20,7 @@ Heightmap de 16 bits em PNG carregado pelo navegador como imagem vira 8 bits: 25
 
 ## 5. Exagero honesto
 
-Sem exagero vertical o relevo some: a cadeia tem 1.300 km de largura e 7 km de altura total. A 002 usa 15x, a 001 usa 40x. O exagero multiplica todas as alturas pelo mesmo fator, então a proporção entre feições se mantém, mas a inclinação não: um talude de 2 graus a 15x parece uma parede de 28 graus. A régua (Cristo, 30 m) entra no mesmo fator: a 15x ela tem 450 m de "altura visual", e isso é dito. A frase do exagero vai na voz e na descrição de todo vídeo. Nunca duas escalas no mesmo quadro.
+Sem exagero vertical o relevo some: a cadeia tem 1.300 km de largura e 7 km de altura total. A 002 usa 15x, a 001 usa 30x (era 40x; decidido em 14/10/2026, `lugares/001-brasil-sem-mar/DIARIO.md`). O exagero multiplica todas as alturas pelo mesmo fator, então a proporção entre feições se mantém, mas a inclinação não: um talude de 2 graus a 15x parece uma parede de 28 graus. A régua (Cristo, 30 m) entra no mesmo fator vezes `regua.escala`: a 15x com escala 1,5 (002) ela tem 675 m de "altura visual", e isso é dito na página e na voz. A frase do exagero vai na voz e na descrição de todo vídeo. Nunca duas escalas no mesmo quadro.
 
 ## 6. NaN do GridServer
 
@@ -45,3 +45,27 @@ Para uma caixa de 1.300 km a CLI lê o Copernicus no overview 3 (450 nós por gr
 ## 11. v2: estrada que afunda
 
 Fora da v1, registrado para não esquecer: linha de OSM (estrada, costa) drapeada sobre heightmap grosseiro afunda no terreno onde a malha corta a linha. Precisa de offset por normal ou de reamostragem da linha na grade. Só entra com loader, licença (ODbL) e esta quebra fechada.
+
+## 12. Morro de um nó só vira cone
+
+Na 002 um texel (636 m) à entrada da baía de Vitória tem 122 m (texel 118/144 do `terreno.png`; pela posição, o Morro do Moreno, nome a confirmar). A 15x são 1,8 km de altura numa base de 1,9 km: um cone. Com a malha uniforme de 1024 segmentos (um vértice a cada dois texels, em meio texel) ele era uma pirâmide de quatro faces planas, com 1 km de altura, atrás do Cristo (apontado na revisão visual de 14/10/2026). A malha ficou mais fina que o texel perto da régua (passo de um quarto de texel crescendo em progressão geométrica até o passo base; grade tensorial, uma malha só, sem emenda) e o cone saiu liso, com a altura certa. A régua foi para o topo desse morro: ao lado dele, o Cristo (675 m) sumia atrás do espigão; em cima, o morro é o pedestal (a ideia aprovada da variante A: "Cristo luminoso num morro"). É o dado, não é invenção; a honestidade está em dizer o exagero.
+
+## 13. A plataforma esconde a linha d'água
+
+De uma câmera baixa na costa, a plataforma de 45 km esconde a linha d'água do esvaziamento: o talude fica a 50 km e desce de -50 m para -700 m, e a água some atrás da borda. O que se vê é a plataforma secar e a cadeia subir por cima da borda. Por isso a abertura da 002 sobe muito mais do que avança (20 km de altura aos 12 s) e só então olha para baixo.
+
+## 14. Água rasante e montes submersos
+
+Até 14/10/2026 a água se dissolvia no ângulo rasante (para o plano não acabar numa reta) e o relevo submerso só escurecia 40 %: os topos dos bancos a -20/-145 m, 150 km adiante, já apareciam em t = 0 como uma fileira de ilhas, e o esvaziamento não tinha o que revelar. Agora o alpha é por Fresnel (0,5 olhando para baixo, 0,9 no rasante), o relevo submerso se extingue com a profundidade (1/e a 150 m: a -50 m sobra um véu, a -700 m nada) e o plano d'água vai até onde a névoa chega a 100 %. Medido: nenhum monte no horizonte em t = 0; os topos rompem a superfície entre 3 e 4 s.
+
+## 15. Duas retas no horizonte
+
+A borda luminosa da água (onde o terreno está logo abaixo da superfície) tinha largura só em espaço de tela, sem teto em metros: de raspão, um pixel cobre centenas de metros de profundidade, e a "costa" subia a escarpa inteira da plataforma, a 40 e a 59 km, como duas retas atravessando o quadro inteiro no horizonte de t = 0 (medidas na revisão visual: luma 82 a 119 contra 30 a 46 nas linhas vizinhas). Teto de 12 m na largura e halo só até 30 m de profundidade: as retas sumiram.
+
+## 16. Isolinhas na parede
+
+Dez isolinhas de 500 m paralelas numa escarpa liam como papel pautado, "mapa bonito" em vez de traço. As isolinhas ficaram em 1.000 m no mar e 100 m na terra, só em encosta suave (somem acima de ~35 graus exagerados) e mais fracas; a forma fica com a silhueta e a crista.
+
+## 17. Reflexo planar e o orçamento
+
+O reflexo planar redesenhava a malha inteira numa segunda passagem: os triângulos dobravam (823.312 na 002; a 001 passaria de 2 milhões). Agora a passagem do espelho usa uma malha com um quarto dos segmentos (25.600 triângulos na 002, 62.464 na 001). As silhueta refletidas ficam mais grossas, o que não aparece: o reflexo é sutil, a meia resolução e borrado. A GPU de um celular de verdade continua sem medir.

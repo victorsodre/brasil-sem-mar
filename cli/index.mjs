@@ -6,12 +6,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  validarBbox, calcularGrade, reamostrarParaGrade, fundirGrade, preencherNaN, minMax, escreverTerrenoPng,
+  validarBbox, calcularGrade, kmDoBbox, reamostrarParaGrade, fundirGrade, preencherNaN, minMax, escreverTerrenoPng,
   lonDoNo, latDoNo, fmtBytes, fmtSegundos, fmtNum, agoraIso, arredondar,
 } from './terrain.mjs';
-import { baixarGmrt, lerGeoTiffLocal, mresolutionPadrao, metrosPorNoDoRaster, GMRT_LICENCA, GMRT_ATRIBUICAO } from './gmrt.mjs';
+import { baixarGmrt, lerGeoTiffLocal, mresolutionPadrao, metrosPorNoDoRaster, estimarBytesGmrt, GMRT_BYTES_MAX, GMRT_LICENCA, GMRT_ATRIBUICAO } from './gmrt.mjs';
 import { coletarCopernicus } from './copernicus.mjs';
-import { PACOTE, escreverJson, TIMEOUT_PADRAO_MS } from './rede.mjs';
+import { PACOTE, escreverJson, TIMEOUT_PADRAO_MS, ehPrincipal } from './rede.mjs';
 
 const RAIZ_PACOTE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -32,7 +32,9 @@ Opções:
   --timeout <min>   tempo máximo por download (padrão 10 min)
   --ajuda, -h       esta ajuda
 
-Entrada: lugares/<slug>/lugar.json. Cache: lugares/<slug>/cache/ (gitignored).`;
+Os lugares ficam em ./lugares/<slug>/ (pasta atual). Com --bbox, a CLI cria ./lugares/<slug>/lugar.json
+e grava nele as opções da criação (--largura, --mresolution, --so-gmrt, --sem-mascara), para as rodadas
+seguintes refazerem a mesma grade sem repetir as opções. Cache: lugares/<slug>/cache/ (gitignored).`;
 
 export function parseArgs(argv) {
   const o = { _: [], forcar: false, silencioso: false, soGmrt: false, semMascara: false, ajuda: false };
@@ -74,16 +76,30 @@ export function parseBboxTexto(texto) {
   return validarBbox({ norte, sul, oeste, leste });
 }
 
-export function lugarPadrao({ slug, nome, bbox }) {
+// Exagero vertical sugerido pela largura da caixa: 15x numa caixa de 500 km ou mais (a 002 tem
+// 1.300 km), 5x em ~100 km, 2x em 30 km ou menos. Numa caixa de 20 km, morros de 300 m a 15x
+// viram espigões de 4,5 km e a trilha padrão voa entre eles.
+export function exageroSugerido(kmLargura) {
+  const km = Number(kmLargura);
+  if (!Number.isFinite(km) || km >= 500) return 15;
+  if (km >= 100) return Math.round(5 + (km - 100) / 400 * 10);
+  if (km >= 30) return Math.round(2 + (km - 30) / 70 * 3);
+  return 2;
+}
+
+// lugar.json com os defaults do SPEC; as opções da criação (largura, mresolution, terra, máscara)
+// ficam gravadas, senão a rodada seguinte refaz tudo em 2048 nós e baixa de novo.
+export function lugarPadrao({ slug, nome, bbox, exagero_vertical = 15, largura_max_nos = 2048, mresolution, terra = 'copernicus', mascara = true }) {
   return {
     slug,
     nome: nome || slug,
     bbox,
-    exagero_vertical: 15,
-    largura_max_nos: 2048,
-    terra: 'copernicus',
+    exagero_vertical,
+    largura_max_nos,
+    ...(Number.isFinite(mresolution) ? { mresolution } : {}),
+    terra,
     mar: 'gmrt',
-    mascara: true,
+    mascara,
     nivel_minimo_m: -5500,
     regua: null,
     clipe_referencia: '',
@@ -96,17 +112,23 @@ function validarSlug(slug) {
   return slug;
 }
 
-// Onde ficam os lugares: a pasta atual se tiver lugares/, senão a raiz do pacote.
-export function raizDosLugares(cwd = process.cwd()) {
-  if (fs.existsSync(path.join(cwd, 'lugares'))) return cwd;
-  return RAIZ_PACOTE;
+// Onde ficam os lugares: a pasta atual. A raiz do pacote só vale para ler um lugar que já existe
+// lá (clone do repositório rodado de uma subpasta); criar é sempre em ./lugares/<slug>/, senão
+// `npx brasil-sem-mar --bbox ...` numa pasta vazia gravava dentro de node_modules ou do cache do npx.
+export function raizDosLugares(cwd = process.cwd(), slug = null) {
+  if (slug && !fs.existsSync(path.join(cwd, 'lugares', slug, 'lugar.json')) && fs.existsSync(path.join(RAIZ_PACOTE, 'lugares', slug, 'lugar.json'))) {
+    return RAIZ_PACOTE;
+  }
+  return cwd;
 }
 
 export function lerLugar(raiz, slug) {
   validarSlug(slug);
   const caminho = path.join(raiz, 'lugares', slug, 'lugar.json');
   if (!fs.existsSync(caminho)) {
-    throw new Error(`lugar não encontrado: ${path.relative(process.cwd(), caminho) || caminho}\n  crie com: npx brasil-sem-mar --bbox N,S,O,L --slug ${slug} --nome "Nome"`);
+    const procurado = [path.join(process.cwd(), 'lugares', slug, 'lugar.json')];
+    if (RAIZ_PACOTE !== process.cwd()) procurado.push(path.join(RAIZ_PACOTE, 'lugares', slug, 'lugar.json'));
+    throw new Error(`lugar não encontrado: ${slug}\n  procurei em: ${procurado.join(' e ')}\n  crie com: npx brasil-sem-mar --bbox N,S,O,L --slug ${slug} --nome "Nome" (grava ./lugares/${slug}/lugar.json)`);
   }
   let lugar;
   try { lugar = JSON.parse(fs.readFileSync(caminho, 'utf8')); } catch (e) { throw new Error(`lugar.json inválido em ${caminho}: ${e.message}`); }
@@ -133,11 +155,16 @@ export async function gerarTerreno({ lugar, opcoes = {}, log = () => {} }) {
 
   const grade = calcularGrade(bbox, largura);
   log(`${lugar.slug} (${lugar.nome}): bbox N ${bbox.norte} S ${bbox.sul} O ${bbox.oeste} L ${bbox.leste}`);
+  if (grade.largura !== largura) log(`grade: largura reduzida de ${largura} para ${grade.largura} nós para a altura não passar de ${grade.altura} (caixa ${fmtNum(grade.km.altura / grade.km.largura, 1)} vezes mais alta que larga)`);
   log(`grade de saída: ${grade.largura}x${grade.altura} nós, ${fmtNum(grade.km.largura)} x ${fmtNum(grade.km.altura)} km, ${Math.round(grade.metros_por_no.x)} x ${Math.round(grade.metros_por_no.y)} m/nó; terra = ${terra}, mar = gmrt, máscara = ${mascara ? 'sim' : 'não'}`);
 
   // 1) GMRT topo (sempre: mar e, no modo gmrt, também a terra)
   const mresolution = opcoes.mresolution ?? lugar.mresolution ?? mresolutionPadrao(bbox, grade.largura);
-  log(`GMRT: pedindo layer=topo com mresolution=${mresolution} m/nó`);
+  const estimativa = estimarBytesGmrt(bbox, mresolution);
+  if (estimativa > GMRT_BYTES_MAX) {
+    throw new Error(`o pedido ao GridServer sairia com ~${fmtBytes(estimativa)} (caixa de ${fmtNum(grade.km.largura)} x ${fmtNum(grade.km.altura)} km a ${mresolution} m/nó); o teto desta CLI é ${fmtBytes(GMRT_BYTES_MAX)}: peça --mresolution maior (ex.: ${Math.ceil(mresolution * Math.sqrt(estimativa / GMRT_BYTES_MAX) / 10) * 10}) ou uma caixa menor`);
+  }
+  log(`GMRT: pedindo layer=topo com mresolution=${mresolution} m/nó (~${fmtBytes(estimativa)} estimados)`);
   const gm = await baixarGmrt({ bbox, layer: 'topo', mresolution, cacheDir, forcar, timeoutMs, log });
   const gmrt = await lerGeoTiffLocal(gm.caminho);
   const gmRes = metrosPorNoDoRaster(gmrt);
@@ -167,7 +194,7 @@ export async function gerarTerreno({ lugar, opcoes = {}, log = () => {} }) {
   let cop = null;
   if (terra === 'copernicus') {
     const alvo = Math.min(grade.graus_por_no.lon, grade.graus_por_no.lat);
-    cop = await coletarCopernicus({ bbox, alvoGrausPorNo: alvo, cacheDir, forcar, paralelo: 3, tentativas: 2, log });
+    cop = await coletarCopernicus({ bbox, alvoGrausPorNo: alvo, cacheDir, forcar, paralelo: 3, tentativas: 2, timeoutMs, log });
     log(`Copernicus: ${cop.resumo.tiles_lidos} tiles lidos (${cop.resumo.tiles_cache} do cache), ${fmtBytes(cop.resumo.bytes_baixados)} baixados em ${cop.resumo.pedidos} pedidos, ${fmtSegundos(cop.resumo.ms)}`);
     fontes.push(cop.fonte);
   }
@@ -215,7 +242,9 @@ export async function gerarTerreno({ lugar, opcoes = {}, log = () => {} }) {
   const caminhoPng = path.join(saidaDir, 'terreno.png');
   const caminhoJson = path.join(saidaDir, 'terreno.json');
   const tP = performance.now();
-  const bytesPng = escreverTerrenoPng(caminhoPng, alturas, grade.largura, grade.altura);
+  const clampados = { abaixo: 0, acima: 0 };
+  const bytesPng = escreverTerrenoPng(caminhoPng, alturas, grade.largura, grade.altura, clampados);
+  if (clampados.abaixo || clampados.acima) log(`aviso: ${clampados.abaixo} nós abaixo de -10.000 m e ${clampados.acima} acima do teto do Terrain-RGB foram presos no limite`);
   const terreno = {
     slug: lugar.slug,
     largura: grade.largura,
@@ -229,6 +258,7 @@ export async function gerarTerreno({ lugar, opcoes = {}, log = () => {} }) {
     fontes,
     mascara: mascaraJson,
     nodata_preenchidos: nodataPreenchidos,
+    clampados,
     fixture: false,
     terra,
     mar: 'gmrt',
@@ -250,28 +280,36 @@ export async function main(argv = process.argv.slice(2)) {
     return opcoes.ajuda ? 0 : 2;
   }
   const log = opcoes.silencioso ? () => {} : (m) => console.log(m);
-  const raiz = raizDosLugares();
   let slug = opcoes._[0];
+  let raiz;
   if (opcoes.bbox) {
     if (!opcoes.slug) throw new Error('--bbox precisa de --slug <slug> (e, de preferência, --nome "...")');
     slug = validarSlug(opcoes.slug);
     const bbox = parseBboxTexto(opcoes.bbox);
+    raiz = process.cwd();   // criar é sempre na pasta atual
     const pasta = path.join(raiz, 'lugares', slug);
     const caminho = path.join(pasta, 'lugar.json');
     if (fs.existsSync(caminho)) throw new Error(`${path.relative(process.cwd(), caminho)} já existe; rode sem --bbox para usar o que está lá`);
+    const km = kmDoBbox(bbox);
+    const exagero = exageroSugerido(km.largura);
+    const novo = lugarPadrao({
+      slug, nome: opcoes.nome, bbox, exagero_vertical: exagero, largura_max_nos: opcoes.largura ?? 2048,
+      mresolution: opcoes.mresolution, terra: opcoes.soGmrt ? 'gmrt' : 'copernicus', mascara: !opcoes.semMascara,
+    });
     fs.mkdirSync(pasta, { recursive: true });
-    escreverJson(caminho, lugarPadrao({ slug, nome: opcoes.nome, bbox }));
-    log(`criado ${path.relative(process.cwd(), caminho)} com os defaults (exagero 15, 2048 nós, copernicus + gmrt, máscara)`);
+    escreverJson(caminho, novo);
+    log(`criado ${path.relative(process.cwd(), caminho)}: caixa de ${fmtNum(km.largura)} x ${fmtNum(km.altura)} km, exagero vertical ${exagero}x (sugerido pela largura; mude no lugar.json), ${novo.largura_max_nos} nós${novo.mresolution ? `, mresolution ${novo.mresolution}` : ''}, terra ${novo.terra}, máscara ${novo.mascara ? 'sim' : 'não'}`);
   } else if (opcoes._.length > 1) {
     throw new Error(`um lugar por vez (veio ${opcoes._.join(', ')})`);
+  } else {
+    raiz = raizDosLugares(process.cwd(), slug);
   }
   const lugar = lerLugar(raiz, slug);
   await gerarTerreno({ lugar, opcoes, log });
   return 0;
 }
 
-const ehPrincipal = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
-if (ehPrincipal) {
+if (ehPrincipal(import.meta.url)) {
   main().then((codigo) => { process.exitCode = codigo; }).catch((e) => {
     console.error(`erro: ${e && e.message ? e.message : e}`);
     process.exitCode = 1;

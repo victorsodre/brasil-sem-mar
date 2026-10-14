@@ -26,11 +26,11 @@ node captura/quadro.mjs  <slug> [--t 0] [--largura 1080] [--altura 1920] [--said
 ```
 
 - `--de` e `--ate` em segundos; o intervalo é meio-aberto: `--de 0 --ate 1 --fps 10` dá 10 quadros (t = 0,0 a 0,9), e segmentos emendam sem repetir quadro. `--ate fim` vai até `window.__bsm.duration()`.
-- `--url` aponta para uma variante: um caminho dentro do repo (`/captura/stub/index.html`, servido pelo `scripts/serve.mjs` que o comando sobe sozinho numa porta livre) ou um `http(s)://...` de um servidor já no ar (aí nenhum servidor é aberto). Sem `--url`, a página é `/index.html`. Os parâmetros `lugar=<slug>` (se não vier na URL), `t=<de>` e `capture=1` entram sempre.
+- `--url` aponta para outra página do repo ou para a própria página com parâmetros: um caminho dentro do repo (`/captura/stub/index.html`, ou `/index.html?camada=1`, servido pelo `scripts/serve.mjs` que o comando sobe sozinho numa porta livre) ou um `http(s)://...` de um servidor já no ar (aí nenhum servidor é aberto). Sem `--url`, a página é `/index.html`. Os parâmetros `lugar=<slug>` (se não vier na URL), `t=<de>` e `capture=1` entram sempre; os que já vêm na URL (como `camada=1`) ficam.
 - `--t` do `quadro.mjs` aceita lista (`0,12,30`); aí `--saida` é uma pasta e sai um `quadro-<t>s.png` por tempo.
 - Viewport 1080x1920 com `deviceScaleFactor` 1; `--largura` e `--altura` têm de ser pares (yuv420p).
-- Saída do `capture.mjs`: `q_000001.png` em diante, `<slug>-<de>s-<ate>s.mp4` e `relatorio.json`. Quadros `q_*.png` antigos na pasta são apagados antes (senão o ffmpeg emendaria a sequência velha).
-- Código de saída: 0 tudo certo; 2 quando o determinismo falhou, o MP4 não bate com o pedido ou a página registrou erro (no `quadro.mjs`); 1 erro de execução.
+- Saída do `capture.mjs`: `q_000001.png` em diante, `<slug>-<de>s-<ate>s.mp4` e `relatorio.json`. Quadros `q_*.png` antigos na pasta são apagados antes (senão o ffmpeg emendaria a sequência velha), mas só dentro de `captura/saida/`: um `--saida` fora dela com `q_*.png` dentro faz o comando parar e pedir para esvaziar a pasta.
+- Código de saída do `capture.mjs`: 0 tudo certo; 2 se o determinismo falhou ou o MP4 não bate com o pedido (erros de página ficam em `erros_pagina` no relatório e no terminal); 1 erro de execução (inclusive renderizador por software). Do `quadro.mjs`: 0 tudo certo; 2 se a página registrou erro; 1 erro de execução.
 
 Exemplos:
 
@@ -38,14 +38,15 @@ Exemplos:
 node captura/quadro.mjs 002-vitoria-trindade --t 12
 node captura/capture.mjs 002-vitoria-trindade --de 0 --ate fim
 node captura/capture.mjs 002-vitoria-trindade --de 0 --ate 1 --fps 10 --url http://127.0.0.1:8765/
+node captura/capture.mjs 002-vitoria-trindade --de 0 --ate 12 --url '/index.html?camada=1' --saida captura/saida/002-vitoria-trindade/camada
 ```
 
 
 ## Chromium
 
-`chromium.launch({ channel: 'chromium', args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] })`: GPU de verdade, nunca SwiftShader. Playwright não trata SIGINT por conta própria aqui (`handleSIGINT: false`): o comando fecha navegador, servidor e cadeados na ordem certa e sai com 130.
+`chromium.launch({ channel: 'chromium', args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] })`: GPU de verdade, nunca SwiftShader. O renderizador WebGL de verdade é lido da página depois de `window.__bsm.ready` (`metrics().renderizador`, via `WEBGL_debug_renderer_info`), impresso no log e gravado em `ambiente.webgl_renderer`: SwiftShader, llvmpipe ou qualquer renderização por software aborta o comando com erro; sem "Metal" só avisa (noutra máquina pode ser outra GPU). Playwright não trata SIGINT por conta própria aqui (`handleSIGINT: false`): o comando fecha navegador, servidor e cadeados na ordem certa e sai com 130. Se o contexto ou a página falharem logo depois do `launch`, o Chromium é fechado antes de o erro subir.
 
-Erros da página (`pageerror`, `console.error`, requisição que falhou, HTTP 4xx/5xx) vão para `erros_pagina` no relatório e para o terminal. O `favicon.ico` que o Chromium pede sozinho é ignorado.
+Erros da página (`pageerror`, `console.error`, requisição que falhou, HTTP 4xx/5xx) vão para `erros_pagina` no relatório e para o terminal. O `favicon.ico` que o Chromium pede sozinho é ignorado, e o 404 de `lugares/<slug>/camera.json` (arquivo opcional: sem ele a página usa a trilha padrão) vira aviso em `avisos_pagina`, não erro.
 
 
 ## Cadeados
@@ -64,7 +65,7 @@ Regras, iguais ao `pesado()` do `produzir.py`: se o diretório existe e o `pid` 
 
 ## relatorio.json
 
-Campos principais: `quadros`, `fps`, `de`, `ate`, `duracao_s`, `url`, `tempos_ms` (`carga_pagina`, `cena_pronta`, `sequencia`, `ffmpeg`, `total` e `por_quadro` com média, mediana, p95 e máximo de `set_time` e `screenshot`), `lista` (um registro por quadro: `t`, arquivo, tempos, bytes, sha256), `determinismo` (`quadros` recapturados, `bytes_diferentes`, `ok`, `comparacoes` com `pixels_diferentes` quando os bytes diferem), `metrics` e `estado_final` da cena, `erros_pagina`, `mp4` (comando do ffmpeg, bytes, `ffprobe` com largura, altura, quadros, pix_fmt e duração), `cadeado` (caminhos, `de_teste`, quanto esperou) e `ambiente` (Node, Chromium).
+Campos principais: `quadros`, `fps`, `de`, `ate`, `duracao_s`, `url`, `tempos_ms` (`carga_pagina`, `cena_pronta`, `sequencia`, `ffmpeg`, `total` e `por_quadro` com média, mediana, p95 e máximo de `set_time` e `screenshot`), `lista` (um registro por quadro: `t`, arquivo, tempos, bytes, sha256), `determinismo` (`quadros` recapturados, `bytes_diferentes`, `ok`, `comparacoes` com `pixels_diferentes` quando os bytes diferem), `metrics` (da cena: draw calls, triângulos, malha, reflexo, textura, `renderizador`, `nevoa_por_km`, `trilha_padrao`) e `estado_final` da cena, `erros_pagina`, `avisos_pagina` (camera.json ausente, renderizador sem Metal), `mp4` (comando do ffmpeg, bytes, `ffprobe` com largura, altura, quadros, pix_fmt e duração), `cadeado` (caminhos, `de_teste`, quanto esperou) e `ambiente` (Node, Chromium, args de GPU, `webgl_renderer`).
 
 
 ## Teste

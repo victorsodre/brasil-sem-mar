@@ -1,0 +1,79 @@
+{
+  "lugar": "001-brasil-sem-mar",
+  "duracao_s": 10,
+  "fps": 30,
+  "nota": "Unidades em km (SPEC: origem no centro do bbox, +x leste, +z sul, y = m x 0,030; exagero 30x, decidido no DIARIO.md). Post de lançamento no X, 10 s: câmera no Atlântico a 120 m de altura real, 400 km a leste-sudeste de Vitória (21,70 S, 36,85 W), olhando para oés-noroeste (rumo 21 graus ao norte do oeste) com o horizonte a 40 % da altura; no primeiro segundo a água fica em 0 m e só a costa do Espírito Santo está no quadro (o cone à esquerda é o Caparaó, 2.430 m no GMRT), com o relevo submerso fraco através da água. De 1 s a 9 s a água desce de 0 a -6300 m em dois tempos (lenta até -1800 m aos 5 s, para a plataforma e o talude terem tela; rápida depois, a planície abissal seca perto de 8 s) enquanto a câmera avança devagar para noroeste (55 km em 10 s), sobe de 120 m para 950 m reais e gira 7 graus para a direita: o primeiro banco da cadeia Vitória-Trindade (topo a -2,6 m em 38,09 W / 20,66 S no GMRT; pela posição é o Banco Besnard, nome a confirmar) entra pela direita como mesa violeta e termina a 125 km, em x ~ 79 % do quadro; o monte seguinte (37,57 W) passa fora do quadro, pela direita. A Elevação do Rio Grande fica 1.100 km ao sul e não cabe neste clipe (névoa da cena). fov é o vertical (three): 55 no 9:16. nivel_agua_m e fov só nos keyframes em que mudam.",
+  "keyframes": [
+    {
+      "t": 0,
+      "pos": [
+        1555.39,
+        3.6,
+        857.16
+      ],
+      "alvo": [
+        1369.7,
+        -17.31,
+        785.88
+      ],
+      "nivel_agua_m": 0,
+      "fov": 55
+    },
+    {
+      "t": 1,
+      "pos": [
+        1552.15,
+        3.75,
+        856.05
+      ],
+      "alvo": [
+        1366.46,
+        -17.16,
+        784.77
+      ],
+      "nivel_agua_m": 0
+    },
+    {
+      "t": 5,
+      "pos": [
+        1537.03,
+        12,
+        834.9
+      ],
+      "alvo": [
+        1356.72,
+        -15.14,
+        752.73
+      ],
+      "nivel_agua_m": -1800
+    },
+    {
+      "t": 9,
+      "pos": [
+        1529.47,
+        25.5,
+        813.75
+      ],
+      "alvo": [
+        1354.29,
+        -8.2,
+        723.33
+      ],
+      "nivel_agua_m": -6300
+    },
+    {
+      "t": 10,
+      "pos": [
+        1527.31,
+        28.5,
+        809.3
+      ],
+      "alvo": [
+        1353.4,
+        -6.23,
+        716.83
+      ],
+      "fov": 55
+    }
+  ]
+}

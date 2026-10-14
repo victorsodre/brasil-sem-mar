@@ -31,7 +31,7 @@ Regra: a tese pública é "Brasil com nome, número e fonte", nunca "ninguém fe
 
 | Fonte | Tipo | O que diz | URL |
 |---|---|---|---|
-| Pesquisa FAPESP, 07/02/2020 | reportagem | mapa do LEPLAC: Besnard 30 m, Fernando de Almeida 38 m, Vema, Rifte Cruzeiro do Sul, Rio Grande, Platô de SC "nunca representado" | https://revistapesquisa.fapesp.br/as-montanhas-submersas-do-brasil/ |
+| Pesquisa FAPESP, 07/02/2020 | reportagem | mapa do LEPLAC: Besnard 30 m, Fernando de Almeida 38 m (na cadeia de Fernando de Noronha), Vema, Rifte Cruzeiro do Sul, Rio Grande, Platô de SC ("O platô nunca havia sido representado em mapas anteriores") | https://revistapesquisa.fapesp.br/as-montanhas-submersas-do-brasil/ |
 | ((o))eco, 27/10/2019 | reportagem | cordilheira de mil quilômetros, mais de 30 montes, 120 a 1.160 km da costa | https://oeco.org.br/reportagens/cordilheira-submarina-de-mil-quilometros-de-extensao-e-um-hotspot-de-vida-marinha/ |
 | Fundação Grupo Boticário (nota sobre artigo na Coral Reefs) | nota de imprensa | Colinas Coralinas no Banco Davis; âncoras e armadilhas de pesca | https://fundacaogrupoboticario.org.br/wp-content/uploads/2024/12/Pesquisadores-descobrem-grandes-extensoes-de-recifes-de-coral-em-montes-submarinos-da-Cadeia-Vitoria-Trindade-1.pdf |
 | A Gazeta, 28/08/2026 | reportagem | mapeamento de três anos, R$ 33,01 milhões, Fest/Ufes | https://www.agazeta.com.br/atitude-sustentavel/corais-e-montes-submarinos-vao-ser-mapeados-de-vitoria-a-ilha-de-trindade-0826 |

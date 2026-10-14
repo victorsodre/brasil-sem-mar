@@ -10,7 +10,7 @@ import { COPERNICUS_NODATA, escolherOverview, misturar4, agoraIso, fmtBytes, fmt
 import { ErroHttp, USER_AGENT, descreverErroRede, hashCurto, obterComCache, tentar, lerJson, escreverJson, emParalelo, TIMEOUT_PADRAO_MS, TENTATIVAS_PADRAO } from './rede.mjs';
 
 export const BUCKET = 'https://copernicus-dem-30m.s3.amazonaws.com';
-export const COPERNICUS_LICENCA = 'Copernicus DEM GLO-30: uso livre com atribuição (licença Copernicus DEM, ESA/Airbus; termos em https://spacedata.copernicus.eu/)';
+export const COPERNICUS_LICENCA = 'Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open (ESA; texto em https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/DEM/resources/license/License-COPDEM-30.pdf)';
 // Aviso 6(b) da licença (dado adaptado: reamostrado, fundido com o GMRT e recodificado em Terrain-RGB)
 // mais a frase 6(c) de não responsabilidade; texto em dados/fontes/copernicus.md.
 export const COPERNICUS_ATRIBUICAO = 'produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30.';

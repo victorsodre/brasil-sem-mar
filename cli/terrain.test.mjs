@@ -78,6 +78,26 @@ test('grade: largura, altura pela proporção em km, graus e metros por nó', ()
   assert.equal(gb.altura, Math.round(2048 * (40 * 111.32) / (46.5 * 111.32 * Math.cos(-14 * Math.PI / 180))));
   assert.equal(gb.altura, 1816);
   assert.throws(() => calcularGrade(BBOX_002, 1), /largura inválida/);
+  // teto: caixa alta e estreita (1 x 40 graus) não vira 2048 x 84.428 nós; a largura cai na proporção
+  const alta = calcularGrade({ norte: 6, sul: -34, oeste: -40, leste: -39 }, 2048);
+  assert.ok(alta.altura <= 4096 && alta.altura >= 4000, `altura ${alta.altura}`);
+  assert.ok(alta.largura >= 90 && alta.largura <= 100, `largura ${alta.largura}`);
+  assert.ok(alta.largura * alta.altura <= 2048 * 2048);
+  assert.ok(Math.abs(alta.metros_por_no.x - alta.metros_por_no.y) / alta.metros_por_no.x < 0.05, 'proporção mantida');
+  // caixa menor que 1 km não faz sentido
+  assert.throws(() => calcularGrade({ norte: -20.0, sul: -20.001, oeste: -40.001, leste: -40.0 }, 2048), /mínimo é 1 km/);
+  assert.throws(() => calcularGrade({ norte: -20.0, sul: -21.0, oeste: -40.001, leste: -40.0 }, 2048), /mínimo é 1 km/);
+});
+
+test('Terrain-RGB: nós fora da faixa são contados ao codificar', () => {
+  const stats = {};
+  codificarTerrainRgb(new Float32Array([-10050, -10000, 0, 1667721.5, 1700000, 5]), 3, 2, stats);
+  assert.deepEqual(stats, { abaixo: 1, acima: 1 });
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bsm-'));
+  const c = {};
+  escreverTerrenoPng(path.join(dir, 't.png'), new Float32Array([1, 2, 3, 4]), 2, 2, c);
+  assert.deepEqual(c, { abaixo: 0, acima: 0 });
+  fs.rmSync(dir, { recursive: true, force: true });
 });
 
 test('bbox: validação com mensagens claras', () => {

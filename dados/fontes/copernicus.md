@@ -66,4 +66,4 @@ A 001 não usa Copernicus (`"terra": "gmrt"`).
 - Datum vertical EGM2008; o GMRT usa nível médio do mar aproximado. Diferença de poucos metros, mas existe.
 - Um tile de oceano pedido por engano é 404; a CLI tem de tratar 404 como "zero", não como falha (na 002 foram 33 dos 39 tiles do bbox).
 - Para caixa grande a CLI lê um overview, não os 30 m: a 002 (1.300 km) usou o overview 3, cerca de 247 m por nó, reamostrado para 636 m. Os 30 m só aparecem em caixa de uns 40 km.
-- O `terreno.json` gerado em 13/10/2026 gravou o aviso 6(a) no campo `atribuicao`; como o terreno é dado adaptado, a página e as descrições usam o 6(b), e a CLI deve trocar o texto.
+- O `terreno.json` gerado às 21h35 de 13/10/2026 gravou o aviso 6(a) no campo `atribuicao`; como o terreno é dado adaptado, a CLI passou a gravar o 6(b) mais a frase 6(c) na mesma noite, e o `terreno.json` da 002 foi regravado do cache (PNG idêntico). Em 14/10/2026 o campo `licenca` passou a apontar para o PDF da licença (`documentation.dataspace.copernicus.eu`), porque `spacedata.copernicus.eu` não responde (timeout de 25 s na revisão).

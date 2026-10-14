@@ -42,7 +42,7 @@
       },
       "nan": 5694,
       "licenca": "CC BY 4.0",
-      "atribuicao": "Ryan, W.B.F., S.M. Carbotte, J.O. Coplan, S. O'Hara, A. Melkonian, R. Arko, R.A. Weissel, V. Ferrini, A. Goodwillie, F. Nitsche, J. Bonczkowski e R. Zemsky (2009), Global Multi-Resolution Topography synthesis, Geochem. Geophys. Geosyst., 10, Q03014, doi:10.1029/2008GC002332",
+      "atribuicao": "Ryan, W. B. F., S.M. Carbotte, J. Coplan, S. O'Hara, A. Melkonian, R. Arko, R.A. Weissel, V. Ferrini, A. Goodwillie, F. Nitsche, J. Bonczkowski, and R. Zemsky (2009), Global Multi-Resolution Topography (GMRT) synthesis data set, Geochem. Geophys. Geosyst., 10, Q03014, doi:10.1029/2008GC002332",
       "obtido_em": "2026-10-13T21:34:47-03:00",
       "bytes": 6393522,
       "sha256": "4cabc002e35169aac3833bc6a01293458d6f1901255d3f1a1770e7a21ebe1fec",
@@ -56,7 +56,7 @@
       "largura": 2847,
       "altura": 561,
       "licenca": "CC BY 4.0",
-      "atribuicao": "Ryan, W.B.F., S.M. Carbotte, J.O. Coplan, S. O'Hara, A. Melkonian, R. Arko, R.A. Weissel, V. Ferrini, A. Goodwillie, F. Nitsche, J. Bonczkowski e R. Zemsky (2009), Global Multi-Resolution Topography synthesis, Geochem. Geophys. Geosyst., 10, Q03014, doi:10.1029/2008GC002332",
+      "atribuicao": "Ryan, W. B. F., S.M. Carbotte, J. Coplan, S. O'Hara, A. Melkonian, R. Arko, R.A. Weissel, V. Ferrini, A. Goodwillie, F. Nitsche, J. Bonczkowski, and R. Zemsky (2009), Global Multi-Resolution Topography (GMRT) synthesis data set, Geochem. Geophys. Geosyst., 10, Q03014, doi:10.1029/2008GC002332",
       "obtido_em": "2026-10-13T21:34:57-03:00",
       "bytes": 6393522,
       "sha256": "0a2e280ed01a90b32b73a115f2b5c0d7acc1cf8affed6b02da54f86b4ac056f3",
@@ -111,7 +111,7 @@
       "overview": 3,
       "overview_nos": 450,
       "graus_por_no": 0.0022222222222222222,
-      "licenca": "Copernicus DEM GLO-30: uso livre com atribuição (licença Copernicus DEM, ESA/Airbus; termos em https://spacedata.copernicus.eu/)",
+      "licenca": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open (ESA; texto em https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/DEM/resources/license/License-COPDEM-30.pdf)",
       "atribuicao": "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30.",
       "obtido_em": "2026-10-13T21:39:18-03:00",
       "bytes": 1798779,
@@ -217,6 +217,10 @@
     "base": "nós com elevação <= 0 m"
   },
   "nodata_preenchidos": 0,
+  "clampados": {
+    "abaixo": 0,
+    "acima": 0
+  },
   "fixture": false,
   "terra": "copernicus",
   "mar": "gmrt",
@@ -225,5 +229,5 @@
     "bytes": 1175983
   },
   "gerado_por": "brasil-sem-mar 0.1.0",
-  "gerado_em": "2026-10-13T22:33:28-03:00"
+  "gerado_em": "2026-10-14T15:00:44-03:00"
 }

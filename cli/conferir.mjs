@@ -5,10 +5,9 @@
 // nos nós de terra com Copernicus a diferença é esperada e é só mostrada.
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { lerTerrenoPng, calcularGrade, lonDoNo, latDoNo, amostrarBilinear, fmtNum } from './terrain.mjs';
 import { lerGeoTiffLocal } from './gmrt.mjs';
-import { hashCurto } from './rede.mjs';
+import { hashCurto, ehPrincipal } from './rede.mjs';
 import { raizDosLugares } from './index.mjs';
 
 // PRNG determinístico (mulberry32), só para escolher os pontos de conferência.
@@ -24,7 +23,7 @@ export function mulberry32(seed) {
 }
 
 export async function conferir({ slug, pontos = 20, seed = 20261013, saida, log = console.log }) {
-  const raiz = raizDosLugares();
+  const raiz = raizDosLugares(process.cwd(), slug);
   const pasta = path.join(raiz, 'lugares', slug);
   const dir = saida ? path.resolve(saida) : pasta;
   const terreno = JSON.parse(fs.readFileSync(path.join(dir, 'terreno.json'), 'utf8'));
@@ -63,8 +62,7 @@ export async function conferir({ slug, pontos = 20, seed = 20261013, saida, log 
   return { okMar, mar, terra, maxDifMar, linhas };
 }
 
-const ehPrincipal = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
-if (ehPrincipal) {
+if (ehPrincipal(import.meta.url)) {
   const args = process.argv.slice(2);
   const opt = (nome, def) => { const i = args.indexOf(nome); return i >= 0 ? args[i + 1] : def; };
   const slug = args.find((a) => !a.startsWith('--') && args[args.indexOf(a) - 1]?.startsWith('--') !== true);

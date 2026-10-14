@@ -109,6 +109,17 @@ test('serve arquivos de uma raiz em porta efêmera e protege o que está fora de
     }
   });
 
+  await t.test('symlink dentro da raiz apontando para fora não é servido', async () => {
+    fs.symlinkSync(path.join(temp, 'fora.txt'), path.join(raiz, 'link-para-fora.txt'));
+    fs.symlinkSync(path.join(raiz, 'dados.json'), path.join(raiz, 'link-para-dentro.json'));
+    const r = await pedir(porta, '/link-para-fora.txt');
+    assert.equal(r.status, 403);
+    assert.ok(!r.corpo.includes('SEGREDO_FORA_DA_RAIZ'));
+    const ok = await pedir(porta, '/link-para-dentro.json');
+    assert.equal(ok.status, 200, 'symlink para dentro da raiz continua servido');
+    assert.equal(ok.corpo, '{"ok":true}');
+  });
+
   await t.test('URL com percent inválido não derruba o servidor', async () => {
     const r = await pedir(porta, '/%zz');
     assert.ok(r.status >= 400 && r.status < 600);

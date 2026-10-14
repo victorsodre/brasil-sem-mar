@@ -187,27 +187,60 @@ export async function abrirNavegador({ largura, altura }) {
     channel: 'chromium', headless: true, args: ARGS_GPU, timeout: 120000,
     handleSIGINT: false, handleSIGTERM: false, handleSIGHUP: false,
   });
-  const context = await browser.newContext({
-    viewport: { width: largura, height: altura }, deviceScaleFactor: 1,
-    locale: 'pt-BR', timezoneId: 'America/Sao_Paulo',
-  });
-  const { page, erros } = await prepararPagina(context);
-  return { browser, context, page, erros, versao: browser.version() };
+  // se o contexto ou a página falharem, o Chromium não pode ficar órfão (ainda não está na pilha de limpeza)
+  try {
+    const context = await browser.newContext({
+      viewport: { width: largura, height: altura }, deviceScaleFactor: 1,
+      locale: 'pt-BR', timezoneId: 'America/Sao_Paulo',
+    });
+    const { page, erros, avisos } = await prepararPagina(context);
+    return { browser, context, page, erros, avisos, versao: browser.version() };
+  } catch (e) {
+    try { await browser.close(); } catch { /* já caiu */ }
+    throw e;
+  }
 }
+
+// O favicon que o Chromium pede sozinho e o camera.json (opcional: sem ele a página usa a trilha
+// padrão, web/app.js) não são erros da cena; o 404 do camera.json vira aviso.
+const favicon = (url) => /\/favicon\.ico$/i.test(String(url || ''));
+const cameraOpcional = (url) => /\/lugares\/[^/]+\/camera\.json(\?.*)?$/i.test(String(url || ''));
 
 export async function prepararPagina(context) {
   const page = await context.newPage();
   const erros = [];
-  // O favicon que o Chromium pede sozinho não é erro da cena.
-  const favicon = (url) => /\/favicon\.ico$/i.test(String(url || ''));
+  const avisos = [];
   page.on('pageerror', (e) => erros.push(String(e)));
   page.on('console', (m) => {
-    if (m.type() !== 'error' || favicon((m.location() || {}).url)) return;
+    if (m.type() !== 'error') return;
+    const url = (m.location() || {}).url;
+    if (favicon(url) || cameraOpcional(url)) return;
     erros.push('console: ' + m.text());
   });
   page.on('requestfailed', (r) => { if (!favicon(r.url())) erros.push(`rede: ${r.url()} ${(r.failure() || {}).errorText || ''}`); });
-  page.on('response', (r) => { if (r.status() >= 400 && !favicon(r.url())) erros.push(`http ${r.status()}: ${r.url()}`); });
-  return { page, erros };
+  page.on('response', (r) => {
+    if (r.status() < 400 || favicon(r.url())) return;
+    if (r.status() === 404 && cameraOpcional(r.url())) { avisos.push(`sem camera.json (http 404: ${r.url()}); a página usa a trilha padrão`); return; }
+    erros.push(`http ${r.status()}: ${r.url()}`);
+  });
+  return { page, erros, avisos };
+}
+
+// Renderizador WebGL de verdade (WEBGL_debug_renderer_info, lido pela própria página em metrics()).
+export async function lerRenderizador(page) {
+  try {
+    return await page.evaluate(() => (window.__bsm && window.__bsm.metrics ? window.__bsm.metrics().renderizador : null) || null);
+  } catch { return null; }
+}
+
+// SwiftShader (renderização por software) é proibido: come os 8 núcleos e o fps não vale nada.
+// Devolve um aviso (string) quando o renderizador não diz Metal, e lança erro em software.
+export function conferirRenderizador(renderizador) {
+  const r = String(renderizador || '');
+  if (!r) return 'renderizador WebGL não informado pela página (metrics().renderizador vazio)';
+  if (/swiftshader|software|llvmpipe|basic render/i.test(r)) throw new Error(`renderizador WebGL por software: "${r}". SwiftShader é proibido (AGENTS.md); confira os args de GPU do Chromium (${ARGS_GPU.join(' ')})`);
+  if (!/metal/i.test(r)) return `renderizador WebGL sem Metal: "${r}" (neste Mac tem de dizer Metal; noutra máquina confira que é GPU de verdade)`;
+  return null;
 }
 
 // Abre a URL e espera window.__bsm.ready (terreno, régua e primeiro quadro). Devolve tempos.

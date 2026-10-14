@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { urlGridServer, mresolutionPadrao, validarGeoTiff, metrosPorNoDoRaster } from './gmrt.mjs';
+import { urlGridServer, mresolutionPadrao, validarGeoTiff, metrosPorNoDoRaster, grauNaUrl, estimarBytesGmrt, GMRT_BYTES_MAX } from './gmrt.mjs';
 import { descreverErroRede, ErroHttp, tentar, hashCurto, emParalelo } from './rede.mjs';
 
 const BBOX_002 = { norte: -19.5, sul: -21.8, oeste: -41.0, leste: -28.5 };
@@ -21,6 +21,22 @@ test('URL exata do GridServer', () => {
   assert.throws(() => urlGridServer({ bbox: BBOX_002, layer: 'xyz' }), /layer/);
   assert.throws(() => urlGridServer({ bbox: BBOX_002, mresolution: 0 }), /mresolution/);
   assert.throws(() => urlGridServer({ bbox: { norte: 1, sul: 2, oeste: 0, leste: 1 } }), /bbox inválido/);
+  // graus em decimal fixo: nada de notação científica na URL, e as URLs já gravadas não mudam
+  assert.equal(grauNaUrl(-41), '-41');
+  assert.equal(grauNaUrl(-19.5), '-19.5');
+  assert.equal(grauNaUrl(1e-7), '0');
+  assert.equal(grauNaUrl(-0.0000004), '0');
+  assert.equal(grauNaUrl(0.1234567), '0.123457');
+  assert.equal(grauNaUrl(-20.325), '-20.325');
+  assert.match(urlGridServer({ bbox: { norte: 1e-7, sul: -1, oeste: -1, leste: 1 } }), /north=0&south=-1&west=-1&east=1&/);
+});
+
+test('estimativa do pedido ao GridServer e teto', () => {
+  // 002 a 636 m/nó: 1302 x 256 km → ~2048 x 403 nós x 4 bytes ≈ 3,3 MB
+  const b = estimarBytesGmrt(BBOX_002, 636);
+  assert.ok(b > 3e6 && b < 3.6e6, `${b}`);
+  assert.ok(estimarBytesGmrt(BBOX_002, 10) > GMRT_BYTES_MAX, 'a 10 m/nó a cadeia inteira passa do teto');
+  assert.ok(estimarBytesGmrt({ norte: 6, sul: -34, oeste: -40, leste: -39 }, 53) > GMRT_BYTES_MAX, '1 x 40 graus a 53 m/nó passa do teto');
 });
 
 test('mresolution padrão = largura do bbox em metros / largura em nós', () => {

@@ -4,16 +4,18 @@ Não é sobre países sem litoral. É o Brasil com o mar tirado: o relevo real d
 
 `npx brasil-sem-mar <lugar>` baixa dado aberto (Copernicus DEM na terra, GMRT no mar), grava um terreno por lugar, e a página Three.js desenha o relevo em traço neon sobre preto e "esvazia" a água. Um comando, sem chave de API, uma pilha só (Node 22 ou mais, sem Python, sem build). A captura headless exporta sequência PNG 1080x1920 e MP4 determinísticos, para Shorts e para o X.
 
-A tese é "Brasil com nome, número e fonte": cada lugar leva `NUMEROS.md` (cada número com fonte primária e URL), `PROVA-INEDITA.md` (o que já existe em vídeo sobre ele) e `DIARIO.md` (o que foi construído e o que quebrou, com data).
+A tese é "Brasil com nome, número e fonte": cada lugar leva `NUMEROS.md` (cada número com fonte primária e URL), `PROVA-INEDITA.md` (o que já existe em vídeo sobre ele) e `DIARIO.md` (o que foi construído e o que quebrou, com data). A 001 ainda não tem `PROVA-INEDITA.md`: é "só render" (abaixo).
 
 ## Lugares
 
 | Lugar | Vídeo | Código | Demo | Notas |
 |---|---|---|---|---|
-| 001 Brasil sem mar (o país inteiro, só render) | em breve | [lugares/001-brasil-sem-mar](lugares/001-brasil-sem-mar/) | em breve | [NUMEROS](lugares/001-brasil-sem-mar/NUMEROS.md) |
+| 001 Brasil sem mar (o país inteiro, só render) | em breve | [lugares/001-brasil-sem-mar](lugares/001-brasil-sem-mar/) | em breve | [NUMEROS](lugares/001-brasil-sem-mar/NUMEROS.md) · [DIARIO](lugares/001-brasil-sem-mar/DIARIO.md) |
 | 002 Cadeia Vitória-Trindade | em breve | [lugares/002-vitoria-trindade](lugares/002-vitoria-trindade/) | em breve | [NUMEROS](lugares/002-vitoria-trindade/NUMEROS.md) · [PROVA-INEDITA](lugares/002-vitoria-trindade/PROVA-INEDITA.md) · [DIARIO](lugares/002-vitoria-trindade/DIARIO.md) |
 
-Demo = a página no GitHub Pages (`https://victorsodre.github.io/brasil-sem-mar/index.html?lugar=<slug>`), ainda não publicada. Os terrenos da 001 e da 002 que estão no repositório foram gerados pela CLI em 13/10/2026; o `terreno.json` de cada um guarda a proveniência (URL exata de cada chamada, bytes, sha256, resolução devolvida, fração medida).
+"Só render" (001): o país inteiro a cerca de 1,9 km por nó (só GMRT), sem régua e sem página interativa a 30 m; a câmera é a trilha de 10 s do `camera.json` e o que sai é o MP4 da captura. A 002 é a peça completa (página, régua, Short de 61 s).
+
+Demo = a página no GitHub Pages (`https://victorsodre.github.io/brasil-sem-mar/index.html?lugar=<slug>`), ainda não publicada; o repositório remoto também ainda não existe, então o `git clone` abaixo só vai funcionar depois do push. Os terrenos da 001 e da 002 que estão no repositório foram gerados pela CLI em 13/10/2026 (o `terreno.json` foi regravado do cache em 14/10/2026 com os textos de atribuição corrigidos; o `terreno.png` é byte a byte o mesmo); o `terreno.json` de cada um guarda a proveniência (URL exata de cada chamada, bytes, sha256, resolução devolvida, fração medida).
 
 ## Usar em 30 segundos
 
@@ -24,7 +26,9 @@ npx brasil-sem-mar 002-vitoria-trindade   # baixa Copernicus + GMRT, grava lugar
 npm run serve                              # http://127.0.0.1:8765/
 ```
 
-Abra `http://127.0.0.1:8765/index.html?lugar=002-vitoria-trindade`. O botão "Reproduzir" roda a trilha de câmera, o slider "Esvaziar" desce o nível d'água, o mouse orbita. Deep link por tempo: `index.html?lugar=002-vitoria-trindade&t=12`.
+`npx brasil-sem-mar` é o `bin` do pacote (funciona também pelo symlink que o npm cria em `node_modules/.bin`); `npm run lugar -- 002-vitoria-trindade` e `node cli/index.mjs 002-vitoria-trindade` fazem o mesmo. Os lugares ficam em `./lugares/<slug>/`, na pasta atual.
+
+Abra `http://127.0.0.1:8765/index.html?lugar=002-vitoria-trindade`. O botão "Reproduzir" roda a trilha de câmera, o slider "Tempo" vai a qualquer segundo, o slider "Esvaziar" desce o nível d'água, o mouse (ou o dedo) orbita. Deep link por tempo: `index.html?lugar=002-vitoria-trindade&t=12` (a interface abre sincronizada com a cena). Os créditos no canto inferior esquerdo abrem o texto inteiro das licenças ("fontes e licenças").
 
 Captura (precisa do Chromium do Playwright: `npx playwright install chromium`; o MP4 precisa de `ffmpeg` no PATH):
 
@@ -33,15 +37,17 @@ node captura/quadro.mjs 002-vitoria-trindade --t 12             # um quadro só 
 node captura/capture.mjs 002-vitoria-trindade --de 0 --ate 10   # sequência PNG + MP4, 30 fps, 1080x1920
 ```
 
-A saída vai para `captura/saida/<slug>/`: `q_000001.png` em diante, `<slug>-0s-10s.mp4` e `relatorio.json`. A captura é determinística: o mesmo `t` dá o mesmo quadro, byte a byte (o relatório grava a diferença entre duas rodadas de 3 quadros; tem de ser 0). Fundo preto puro, sem texto: a esteira de vídeo compõe a sequência como camada de luz.
+A saída vai para `captura/saida/<slug>/`: `q_000001.png` em diante, `<slug>-0s-10s.mp4` e `relatorio.json`. A captura é determinística: o mesmo `t` dá o mesmo quadro, byte a byte (o relatório grava a diferença entre duas rodadas de 3 quadros; tem de ser 0). Fundo preto puro, sem texto: a esteira de vídeo compõe a sequência como camada de luz. O relatório grava o renderizador WebGL de verdade (`ambiente.webgl_renderer`); renderização por software (SwiftShader) aborta a captura.
+
+Para a esteira compor por cima de um clipe, `camada=1` na URL reduz o corpo do relevo e a base da água a 35 % e deixa linhas, arestas, costa e Cristo intactos: `node captura/capture.mjs 002-vitoria-trindade --de 0 --ate 12 --url '/index.html?camada=1' --saida captura/saida/002-vitoria-trindade/camada`.
 
 ## Criar um lugar novo
 
-1. Crie `lugares/<slug>/lugar.json` (modelo: `lugares/002-vitoria-trindade/lugar.json`; todos os campos no `SPEC.md`): `nome`, `bbox` (norte, sul, oeste, leste, em graus), `exagero_vertical`, `terra` (`copernicus` ou `gmrt`), `mar` (`gmrt`), `mascara`, `regua` (lon, lat do Cristo) e a `frase_de_vida`, com fonte.
-2. Ou passe a caixa direto, e a CLI grava o `lugar.json` com os defaults do `SPEC.md`: `npx brasil-sem-mar --bbox <norte>,<sul>,<oeste>,<leste> --slug 003-meu-lugar --nome "Meu lugar"`. Opções (`--largura`, `--so-gmrt`, `--sem-mascara`, `--mresolution`, `--saida`, `--forcar`, `--timeout`): `npx brasil-sem-mar --ajuda`.
+1. Crie `lugares/<slug>/lugar.json` (modelo: `lugares/002-vitoria-trindade/lugar.json`; todos os campos no `SPEC.md`): `nome`, `bbox` (norte, sul, oeste, leste, em graus), `exagero_vertical`, `terra` (`copernicus` ou `gmrt`), `mar` (`gmrt`), `mascara`, `regua` (lon, lat do Cristo e `escala`, o fator visível da régua sobre o exagero; 1 = mesma escala do relevo), `nevoa_por_km` (opcional; padrão 0,0022: um lugar de 5.000 km precisa enxergar a 500 km) e a `frase_de_vida`, com fonte.
+2. Ou passe a caixa direto, e a CLI grava o `lugar.json` com os defaults do `SPEC.md`: `npx brasil-sem-mar --bbox <norte>,<sul>,<oeste>,<leste> --slug 003-meu-lugar --nome "Meu lugar"`. O exagero vertical sugerido vem da largura da caixa (15x a 500 km ou mais, 5x a 100 km, 2x a 30 km; mude no `lugar.json`), e as opções da criação (`--largura`, `--mresolution`, `--so-gmrt`, `--sem-mascara`) ficam gravadas nele. Opções (`--largura`, `--so-gmrt`, `--sem-mascara`, `--mresolution`, `--saida`, `--forcar`, `--silencioso`, `--timeout`, `-h`): `npx brasil-sem-mar --ajuda`.
 3. `npx brasil-sem-mar 003-meu-lugar` baixa (com cache em `lugares/<slug>/cache/`, fora do git), funde terra e mar, e grava `terreno.png` (Terrain-RGB) e `terreno.json` (proveniência: URL exata de cada chamada, bytes, sha256, licença, fração medida x interpolada).
-4. Escreva `camera.json` (trilha de 61 s por keyframes), `NUMEROS.md`, `PROVA-INEDITA.md` e `DIARIO.md`.
-5. Orçamento por lugar: 10 MB no GitHub Pages, textura até 2048, até 1 milhão de triângulos, 30 fps num celular.
+4. Escreva `camera.json` (trilha de 61 s por keyframes): `node scripts/picos.mjs <slug>` lista os montes submarinos em coordenadas da cena (x, z) para os keyframes, e `node scripts/trilha-check.mjs <slug>` confere a trilha contra o terreno (folga, velocidade, horizonte e onde o Cristo cai na tela) sem abrir navegador. Sem `camera.json` a página usa uma órbita padrão. Depois, `NUMEROS.md`, `PROVA-INEDITA.md` e `DIARIO.md`.
+5. Orçamento por lugar: 10 MB no GitHub Pages, textura até 2048, até 1 milhão de triângulos, 30 fps num celular (a CPU foi medida com estrangulamento de 4x; a GPU de um celular de verdade ainda não).
 
 Lugar sem virada, sem frase de vida com fonte, ou com pauta igual a viral recente, não entra na fila de Shorts: vira post e pôster. Qual lugar você quer ver sem mar? Abra uma issue; um `lugar.json` aceito por PR é um lugar novo no placar.
 
@@ -51,19 +57,19 @@ Lugar sem virada, sem frase de vida com fonte, ou com pauta igual a viral recent
 
 | O quê | Quem, quando | O que faz | URL |
 |---|---|---|---|
-| Draining the Oceans | NASA SVS, 01/06/2008 (Horace Mitchell); versão de 11/09/2020; remake em 4K de James O'Donoghue, 12/12/2019 | o planeta com o mar descendo 10 m por quadro (ETOPO) | https://svs.gsfc.nasa.gov/3487 · https://svs.gsfc.nasa.gov/4823 · https://www.youtube.com/watch?v=-uOwv_Krqk8 |
+| Draining the Oceans | NASA SVS, 01/06/2008 (Horace Mitchell); versão de 11/09/2020; remake em 4K atribuído a James O'Donoghue (o oembed do YouTube devolve o canal como "Interplanetary"; autoria e data de 12/12/2019 a confirmar à mão) | o planeta com o mar descendo 10 m por quadro (ETOPO) | https://svs.gsfc.nasa.gov/3487 · https://svs.gsfc.nasa.gov/4823 · https://www.youtube.com/watch?v=-uOwv_Krqk8 |
 | Drain the Oceans | National Geographic, desde 28/05/2018; 6 temporadas, 63 episódios | série de TV: naufrágios e cidades submersas com o mar "drenado" em CGI | https://en.wikipedia.org/wiki/Drain_the_Oceans (a página oficial da Nat Geo redireciona para natgeotv.com) |
-| Google Earth 5.0 | Google, 02/02/2009 | fundo do mar em 3D no globo, base GEBCO_08 a 30 segundos de arco | https://gebco.net/news_and_media/gebco_08_google.html |
+| Google Earth 5.0 | Google, lançado em 02/02/2009 (a nota do GEBCO é de 01/02/2009) | fundo do mar em 3D no globo, base GEBCO_08 a 30 segundos de arco | https://gebco.net/news_and_media/gebco_08_google.html |
 | earth-drained | snapidapp, 06/10/2026 | globo three.js com os oceanos removidos; ETOPO a 10 minutos de arco (~18 km por nó); MIT | https://github.com/snapidapp/earth-drained |
 | Seascape | Open Waters | tiles de batimetria aberta (GEBCO 2026 mais fontes regionais), CC BY 4.0; para o Brasil registra "closed / request-only, no open hi-res source exists" | https://github.com/openwatersio/seascape |
 | OpenZenith DEM | aliasfox (Hugging Face) | pirâmide global z0 a z8 em Terrarium: Copernicus GLO-30 mais GEBCO 2025; MIT | https://huggingface.co/datasets/aliasfox/openzenith-dem |
 | bopen/elevation | B-Open | CLI `eio clip` que baixa e recorta SRTM, Copernicus GLO-30 e GLO-90 e Mapzen; Apache-2.0 | https://github.com/bopen/elevation |
 
-A diferença deste repositório não é "ninguém fez 3D do fundo do mar". É o Brasil com nome, número e fonte: a margem brasileira com as feições que o LEPLAC batizou (Banco Besnard, Canal Vema, Platô de Santa Catarina, Elevação do Rio Grande), cada uma num lugar com `lugar.json` forkável, número com fonte primária, prova de ineditismo registrada, e a câmera ao nível do mar, nunca vista de mapa. Nenhum projeto acima serve a margem brasileira em alta resolução, e o Seascape escreve que no Brasil não existe fonte aberta de alta resolução. Aqui o mar também vem do GEBCO (pela base do GMRT) onde não há multifeixe, e isso fica dito.
+A diferença deste repositório não é "ninguém fez 3D do fundo do mar". É o Brasil com nome, número e fonte: a margem brasileira com as feições que o mapa do LEPLAC reúne (e, em parte, nomeou): Banco Besnard, Canal Vema, Platô de Santa Catarina, Elevação do Rio Grande, cada uma num lugar com `lugar.json` forkável, número com fonte primária, prova de ineditismo registrada, e a câmera ao nível do mar, nunca vista de mapa. Nenhum projeto acima serve a margem brasileira em alta resolução, e o Seascape escreve que no Brasil não existe fonte aberta de alta resolução. Aqui o mar também vem do GEBCO (pela base do GMRT) onde não há multifeixe, e isso fica dito.
 
 ## Honestidade na tela
 
-- O exagero vertical é declarado por lugar no `lugar.json` (001: 40x; 002: 15x) e dito na voz e na descrição de cada vídeo: "aqui está quinze vezes mais alto que o real, senão não dá para ver". A régua (Cristo Redentor, 30 m) entra na mesma escala exagerada, nunca em escala ambígua.
+- O exagero vertical é declarado por lugar no `lugar.json` (001: 30x; 002: 15x) e dito na voz e na descrição de cada vídeo: "aqui está quinze vezes mais alto que o real, senão não dá para ver". A régua (Cristo Redentor, 30 m) obedece ao exagero do relevo vezes `regua.escala` declarado no `lugar.json`: na 002 é 1,5 (30 m x 15 x 1,5 = 675 m visuais, em cima de um morro de 122 m à entrada da baía de Vitória, que a 15x vira um cone de 1,8 km), e a página e a voz dizem isso. Nunca escala ambígua.
 - Medido x interpolado: a camada `topo-mask` do GMRT diz, nó a nó, o que é multifeixe (valor) e o que é interpolado da base GEBCO (NaN). A fração vai no `terreno.json` (`mascara.pct_medido`) e na descrição. No bbox inteiro da 002, 8,4 % dos nós de mar são medidos (66.900 de 792.363); na caixa do Banco Besnard deu 0 %: a forma do topo no render é a do GEBCO; a profundidade de 30 m é da Marinha (LEPLAC, via Pesquisa FAPESP).
 - A resolução real de cada fonte vai no `terreno.json` e na descrição: na 002 a terra do Copernicus entrou no overview 3 (cerca de 247 m por nó) e o mar do GMRT a 458 m, os dois reamostrados para 636 m por nó; os 30 m só aparecem em caixa pequena. A 001 é só GMRT, a cerca de 1,9 km por nó.
 - A grade de 40 m da cadeia (CORE-VTRCC) ainda não está no repositório, e mesmo quando chegar não cobre topos acima de 100 a 200 m de profundidade (o próprio paper diz). O lançamento não promete esse dado.
@@ -95,7 +101,7 @@ Tagliaro, Gabriel, et al. (2024), Processed gridded bathymetry data for the CORE
 
 ### Cristo Redentor (régua de 30 m)
 
-"Christ the Redeemer (Cristo Redentor)" por Parlin Sitorus, CC BY 4.0, https://sketchfab.com/3d-models/christ-the-redeemer-cristo-redentor-157dbdb9d8654651a5e5c9af7b412398. Alterações: malha simplificada, vértices soldados, rotação para Y-up, escala para 30 m. O crédito aparece na página, no canto inferior esquerdo, sempre. Ficha: `dados/fontes/cristo.md`.
+"Christ the Redeemer (Cristo Redentor)" por Parlin Sitorus, CC BY 4.0, https://sketchfab.com/3d-models/christ-the-redeemer-cristo-redentor-157dbdb9d8654651a5e5c9af7b412398. Alterações: malha simplificada, vértices soldados, rotação para Y-up, escala para 30 m. O crédito aparece na página, no canto inferior esquerdo, sempre, fora do modo captura (no vídeo o crédito vai na descrição). Ficha: `dados/fontes/cristo.md`.
 
 ### three.js
 
@@ -107,6 +113,6 @@ Pelos três critérios do YouTube (https://support.google.com/youtube/answer/143
 
 ## Para quem for mexer no código
 
-`AGENTS.md` tem as armadilhas (PNG de 16 bits, overviews sem transformação afim, GridServer sem `mresolution`, tiles de oceano 404, SwiftShader, um headless por vez, cadeado da esteira, determinismo). `SPEC.md` é o contrato entre os módulos. `ONDE-QUEBRA.md` é a lista do que não fica bonito e por quê. Testes: `npm test`. Conferência de um terreno contra o GeoTIFF do GMRT que ficou no cache, em 20 pontos fixos: `node cli/conferir.mjs <slug>`.
+`AGENTS.md` tem as armadilhas (PNG de 16 bits, overviews sem transformação afim, GridServer sem `mresolution`, tiles de oceano 404, SwiftShader, um headless por vez, cadeado da esteira, determinismo). `SPEC.md` é o contrato entre os módulos. `ONDE-QUEBRA.md` é a lista do que não fica bonito e por quê. Testes: `npm test`. Conferência de um terreno contra o GeoTIFF do GMRT que ficou no cache, em 20 pontos fixos: `node cli/conferir.mjs <slug>`. Trilha de câmera contra o terreno, sem navegador: `node scripts/trilha-check.mjs <slug>`.
 
 por Victor Sodré · @ovictor

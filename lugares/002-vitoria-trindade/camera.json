@@ -2,19 +2,19 @@
   "lugar": "002-vitoria-trindade",
   "duracao_s": 61,
   "fps": 30,
-  "nota": "Unidades em km (SPEC: origem no centro do bbox, +x leste, +z sul, y = m x 0.015). Abertura (0 a 12 s, o post do X): câmera baixa na costa de Vitória, 3.2 km a oeste do Cristo (régua, em -577.1, -36.7) e 1.15 km acima (77 m reais), olhando para leste com o horizonte a ~40 % da altura; nos 2 primeiros segundos a água fica em 0 m e a câmera só se aproxima do Cristo; de 2 a 12 s a água esvazia (suavizado) enquanto a câmera sobe e avança devagar sobre a plataforma, até enxergar por cima da borda do talude (50 km a leste) o Banco de Vitória e a cadeia. De 12 a 16 s mergulha pelo talude; depois voa baixo pela planície abissal, ao sul da cadeia, olhando os montes (scripts/picos.mjs), até a Ilha da Trindade (566/-15). fov é o vertical (three): 55 no 9:16. nivel_agua_m e fov só nos keyframes em que mudam.",
+  "nota": "Unidades em km (SPEC: origem no centro do bbox, +x leste, +z sul, y = m x 0,015). Régua: Cristo (30 m x 15 x 1,5) no topo do morro de 122 m à entrada da baía de Vitória (texel 118/144 do terreno.png; -575,7, -36,2 na cena; pela posição, o Morro do Moreno, nome a confirmar). Abertura (0 a 12 s, o post do X): câmera 3 km a oeste-sudoeste do morro e 2,2 km de altura (150 m reais), olhando para leste-nordeste 6 graus para baixo (horizonte a ~39 % da altura), o Cristo no meio do quadro, iluminado, em cima do morro escuro, com o mar à frente e os montes da cadeia escondidos sob a água; recuo contínuo e lento nos 2 primeiros segundos; de 2 a 6 s a água começa a esvaziar enquanto a câmera sobe e recua, com o Cristo descendo para o terço inferior; de 6 a 12 s a câmera ganha altura (20 km) e avança 110 km para leste olhando 14 graus para baixo: os topos dos bancos rompem a superfície entre 3 e 4 s e, com a água em -5500 m aos 12 s, os montes da cadeia ficam de pé, com 40 a 58 km de altura, a 120 a 270 km. De 12 a 23,5 s a câmera desce em espiral para a planície ao sul da cadeia sem tirar o olho do primeiro monte; de 23,5 a 55 s a trilha da variante C, intocada (voo baixo pela planície olhando os montes, scripts/picos.mjs); de 55 a 61 s a câmera sobe e termina 130 km a oeste da Trindade enquanto a água volta a 0 m nos últimos 5 s e a lente fecha devagar (fov 55 para 38): só a ponta da ilha fica de fora, com a linha d’água em volta. fov é o vertical (three): 55 no 9:16. nivel_agua_m e fov só nos keyframes em que mudam.",
   "keyframes": [
     {
       "t": 0,
       "pos": [
-        -580.29,
-        1.18,
-        -36.74
+        -578.6,
+        2.25,
+        -35.2
       ],
       "alvo": [
-        -431.11,
-        -14.5,
-        -36.74
+        -436.33,
+        -13.43,
+        -80.06
       ],
       "nivel_agua_m": 0,
       "fov": 55
@@ -22,68 +22,55 @@
     {
       "t": 2,
       "pos": [
-        -579.89,
-        1.23,
-        -36.74
+        -579.27,
+        2.32,
+        -35
       ],
       "alvo": [
-        -430.71,
-        -14.45,
-        -36.74
+        -437.05,
+        -13.88,
+        -79.84
       ],
       "nivel_agua_m": 0
     },
     {
       "t": 6,
       "pos": [
-        -574.59,
-        3.63,
-        -36.74
+        -582,
+        5,
+        -34
       ],
       "alvo": [
-        -425.87,
-        -15.95,
-        -36.74
+        -440.7,
+        -17.95,
+        -78.82
       ]
     },
     {
       "t": 12,
       "pos": [
-        -545.09,
-        8.03,
-        -36.74
+        -470,
+        20,
+        -42
       ],
       "alvo": [
-        -396.74,
-        -14.14,
-        -36.74
+        -330,
+        -18,
+        -26
       ],
       "nivel_agua_m": -5500
     },
     {
-      "t": 16,
+      "t": 17.5,
       "pos": [
-        -516,
-        -7,
-        -30
-      ],
-      "alvo": [
-        -410,
-        -12,
-        -20
-      ]
-    },
-    {
-      "t": 20,
-      "pos": [
-        -480,
-        -19,
-        -6
-      ],
-      "alvo": [
-        -327,
+        -462,
         -4,
-        -32
+        6
+      ],
+      "alvo": [
+        -328,
+        -5,
+        -30
       ]
     },
     {
@@ -193,29 +180,45 @@
     {
       "t": 55,
       "pos": [
-        300,
-        -48,
-        64
+        320,
+        -38,
+        58
       ],
       "alvo": [
         566,
-        7,
+        2,
         -15
       ]
     },
     {
-      "t": 61,
+      "t": 56,
       "pos": [
-        455,
-        -46,
-        30
+        345,
+        -30,
+        52
       ],
       "alvo": [
         566,
-        7,
+        2,
         -15
       ],
+      "nivel_agua_m": -5500,
       "fov": 55
+    },
+    {
+      "t": 61,
+      "pos": [
+        448,
+        10,
+        36
+      ],
+      "alvo": [
+        584.59,
+        -9.58,
+        -22.82
+      ],
+      "nivel_agua_m": 0,
+      "fov": 38
     }
   ]
 }

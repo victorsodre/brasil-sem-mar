@@ -17,7 +17,7 @@ Nenhuma chamada de rede: o arquivo é local. Verificação de 13/10/2026: sha256
 
 ## Onde quebra
 
-- Escala: a régua obedece ao exagero vertical da cena. A 15x o Cristo tem 450 m de "altura visual"; a 40x, 1.200 m. Isso é dito na voz. Nunca duas escalas no mesmo quadro.
-- Posição: `regua.lon/lat` precisa cair sobre terreno acima da água no tempo em que a régua aparece; sobre o mar, a base fica dentro da água e a régua perde sentido.
+- Escala: a régua obedece ao exagero vertical da cena vezes `regua.escala` do `lugar.json`. A 15x o Cristo tem 450 m de "altura visual"; com escala 1,5 (002), 675 m. Isso é dito na página e na voz. A 001 não tem régua. Nunca duas escalas no mesmo quadro.
+- Posição: `regua.lon/lat` precisa cair sobre terreno acima da água no tempo em que a régua aparece; sobre o mar, a base fica dentro da água e a régua perde sentido. Na 002 a régua está no topo do morro de 122 m à entrada da baía de Vitória (texel 118/144 do `terreno.png`; 40,2767 W, 20,3247 S; pela posição, o Morro do Moreno, nome a confirmar), de propósito: a 15x o morro é um cone de 1,8 km e, ao lado dele, o Cristo sumia atrás do espigão; em cima, o morro é o pedestal.
 - Peso: 1,7 MB no orçamento de 10 MB do lugar. A versão Draco (144 KB) existe no cristo-redentor, mas exige `DRACOLoader` e o decoder; fica para quando o orçamento apertar.
 - Maracanã e pessoa de 1,75 m são v2.

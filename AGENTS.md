@@ -9,8 +9,9 @@ Leia `SPEC.md` antes de tudo: é o contrato entre CLI, terreno, página e captur
 - Nenhuma menção a empresa. Assinatura é "Victor Sodré · @ovictor".
 - Three.js vendorizado em `web/vendor/three/` (versão exata, com licença). Nunca CDN.
 - Cada fonte de dado tem ficha em `dados/fontes/` com URL, licença, texto de atribuição, chamadas registradas e onde quebra. Nunca inventar número nem fonte; o que não foi conferido fica marcado "a confirmar".
-- CLI: `npx brasil-sem-mar <slug>` lê `lugares/<slug>/lugar.json`; `npx brasil-sem-mar --bbox N,S,O,L --slug <slug> --nome "Nome"` cria o lugar; `--ajuda` lista as opções (`--largura`, `--so-gmrt`, `--sem-mascara`, `--mresolution`, `--saida`, `--forcar`, `--silencioso`, `--timeout`).
-- Testes: `npm test` (`node --test cli/*.test.mjs scripts/*.test.mjs`).
+- CLI: `npx brasil-sem-mar <slug>` lê `./lugares/<slug>/lugar.json` (pasta atual; a raiz do pacote só para um lugar que já existe lá); `npx brasil-sem-mar --bbox N,S,O,L --slug <slug> --nome "Nome"` cria `./lugares/<slug>/lugar.json` com o exagero sugerido pela largura da caixa e as opções da criação gravadas; `--ajuda` lista as opções (`--largura`, `--so-gmrt`, `--sem-mascara`, `--mresolution`, `--saida`, `--forcar`, `--silencioso`, `--timeout`). O `bin` é detectado por `realpath` (`ehPrincipal` em `cli/rede.mjs`): comparar `process.argv[1]` por `path.resolve` falhava pelo symlink do npm e `npx brasil-sem-mar` saía mudo com código 0 (bloqueio achado na revisão de 14/10/2026; há teste).
+- Testes: `npm test` (`node --test cli/*.test.mjs scripts/*.test.mjs captura/*.test.mjs`).
+- Trilha de câmera: `node scripts/picos.mjs <slug>` (montes em coordenadas da cena) e `node scripts/trilha-check.mjs <slug>` (folga sobre o terreno e a água, velocidade, horizonte, onde o Cristo cai na tela) antes de capturar. `camera.json` é opcional: sem ele a página usa a trilha padrão (órbita dentro da névoa) e a captura registra um aviso, não um erro.
 
 ## O Mac é compartilhado com a esteira de vídeo
 
@@ -23,7 +24,7 @@ Leia `SPEC.md` antes de tudo: é o contrato entre CLI, terreno, página e captur
 ## Headless e GPU
 
 - Só o Chromium do Playwright 1.61.0, `chromium.launch({ channel: 'chromium', args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] })`, viewport 1080x1920, `deviceScaleFactor` 1. É o mesmo arranjo do `scripts/capture.mjs` do cristo-redentor, medido lá como `ANGLE Metal Renderer: AMD Radeon Pro Vega 56`.
-- SwiftShader é proibido. Sem os args de GPU o Chromium headless cai em renderização por software, come os 8 núcleos e o fps não vale nada. Confira o renderizador (`WEBGL_debug_renderer_info`) no relatório: tem de dizer Metal.
+- SwiftShader é proibido. Sem os args de GPU o Chromium headless cai em renderização por software, come os 8 núcleos e o fps não vale nada. A captura lê o renderizador de verdade na página (`WEBGL_debug_renderer_info`, `window.__bsm.metrics().renderizador`), grava em `relatorio.json` → `ambiente.webgl_renderer` e imprime no log: SwiftShader (ou qualquer renderização por software) aborta o comando; sem "Metal" só avisa, porque noutra máquina pode ser outra GPU de verdade. Neste Mac tem de dizer `ANGLE Metal Renderer: AMD Radeon Pro Vega 56`.
 - Nunca rodar WebGL vivo dentro do HTML da esteira (HyperFrames): ela roda SwiftShader por padrão. O terreno entra na esteira como sequência PNG com fundo preto, composta com `lighter` (preto some, luz soma).
 
 ## Determinismo da cena
@@ -59,9 +60,12 @@ Leia `SPEC.md` antes de tudo: é o contrato entre CLI, terreno, página e captur
 ## Página (index.html)
 
 - O `importmap` tem de vir antes de qualquer `<link rel="modulepreload">`. Com o preload antes, a resolução de módulo começa sem o mapa e `three` não resolve; no cristo-redentor, sob CPU estrangulada, isso quebrava a página em 100 % das vezes.
-- Exagero vertical: `y = elev_m * exagero_vertical / 1000` (unidades em km; origem no centro do bbox; `+x` leste, `+z` sul, `+y` cima). A régua do Cristo (30 m reais, base em y = 0) entra com o mesmo fator (`exagero_vertical/1000 * regua.escala`). Nunca misture escala real e exagerada no mesmo quadro.
-- Orçamento de celular: até 1 M de triângulos, textura até 2048, 30 fps com CPU 4x mais lenta, 10 MB por lugar.
-- Crédito CC BY do Cristo visível no canto inferior esquerdo, sempre, fora do modo captura. Textos em português.
+- Exagero vertical: `y = elev_m * exagero_vertical / 1000` (unidades em km; origem no centro do bbox; `+x` leste, `+z` sul, `+y` cima). A régua do Cristo (30 m reais, base em y = 0) entra com o mesmo fator vezes `regua.escala` (`exagero_vertical/1000 * regua.escala`; na 002 é 1,5: 675 m visuais, e a página e a voz dizem isso). Nunca misture escala real e exagerada no mesmo quadro.
+- Um morro de um nó só (um texel de 636 m com 122 m, à entrada da baía de Vitória) a 15x é um cone de 1,8 km. A malha é mais fina que o texel perto da régua (grade tensorial, uma malha só) para a silhueta ser lisa, e a régua da 002 está em cima desse morro de propósito: ao lado dele, o Cristo (675 m) sumia atrás do espigão.
+- Névoa por lugar: `nevoa_por_km` no `lugar.json` (padrão `LOOK.nevoa` = 0,0022). Um lugar de 5.000 km (001) precisa enxergar a 500 km; um de 1.300 km não. O plano d'água vai até onde a névoa chega a 100 %, em qualquer tamanho de caixa.
+- Água: alpha por Fresnel (0,5 olhando para baixo, 0,9 no rasante) e o relevo submerso se extingue com a profundidade (1/e a 150 m). Uma água que se dissolvia no rasante deixava os montes submersos a 150 km aparecerem como ilhas em t = 0, e o esvaziamento não revelava nada.
+- Orçamento de celular: até 1 M de triângulos na malha principal, textura até 2048, 30 fps com CPU 4x mais lenta, 10 MB por lugar. O reflexo planar usa uma malha com um quarto dos segmentos (25.600 triângulos na 002), não a malha cheia. A GPU de um celular de verdade ainda não foi medida.
+- Crédito CC BY do Cristo visível no canto inferior esquerdo, sempre, fora do modo captura, com o link do modelo no Sketchfab e o da licença; os créditos são montados com nós do DOM (os textos vêm do `terreno.json`). Textos em português.
 
 ## Git e posse
 

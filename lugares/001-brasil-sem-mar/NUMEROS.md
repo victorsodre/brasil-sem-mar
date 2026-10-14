@@ -1,6 +1,6 @@
 # NUMEROS: 001 Brasil sem mar
 
-Cada número que entra no vídeo, no post ou na página, com fonte primária e URL. Status: "verificado" = lido na fonte em 13/10/2026; "a confirmar" = ainda sem fonte primária lida. Número sem fonte primária não entra no vídeo. Bbox: 6 N a 34 S, 74,5 W a 28 W; exagero vertical declarado: 40x; render-only (sem página interativa).
+Cada número que entra no vídeo, no post ou na página, com fonte primária e URL. Status: "verificado" = lido na fonte em 13/10/2026; "a confirmar" = ainda sem fonte primária lida. Número sem fonte primária não entra no vídeo. Bbox: 6 N a 34 S, 74,5 W a 28 W; exagero vertical declarado: 30x (era 40x; decidido em 14/10/2026, `DIARIO.md`); "só render": sem página interativa a 30 m (a terra é GMRT a ~1,9 km por nó), sem régua, o que sai é o MP4 da trilha de 10 s do `camera.json`.
 
 | Número | Onde entra | Fonte | URL | Status |
 |---|---|---|---|---|
@@ -11,7 +11,7 @@ Cada número que entra no vídeo, no post ou na página, com fonte primária e U
 | Campos marítimos produziram 97,4 % do petróleo e 84,3 % do gás natural do Brasil em 2024 | "de onde sai a maior parte do petróleo" | ANP, Boletim da Produção de Petróleo e Gás Natural, dezembro de 2024 (consolidado 2024), seção "Origem da Produção": "Os campos marítimos produziram 97,4% do petróleo e 84,3% do gás natural." | https://www.gov.br/anp/pt-br/centrais-de-conteudo/publicacoes/boletins-anp/boletins/arquivos-bmppgn/2024/dezembro.pdf | verificado (PDF lido em 13/10/2026) |
 | Pré-sal: 78,5 % do total produzido no país (dezembro de 2024); produção de 3,421 milhões de bbl/d no mês | contexto | mesmo boletim | mesma URL | verificado |
 | 89 % (88,9 %) das exportações passam pelo mar (2023) | "é por ali que passam 89 % das exportações" | nenhuma fonte primária lida. Pistas: a Marinha fala em "95 % do comércio exterior" (texto indexado de página que bloqueia robô); a ATP diz que as exportações por via marítima somaram US$ 300,4 bilhões em 2023 (Portos e Navios, 17/01/2024, https://www.portosenavios.com.br/noticias/portos-e-logistica/balanca-comercial-por-via-maritima-cresceu-41-9-em-2023), e a Secex/IBGE dá o total de 2023 em US$ 339,67 bilhões, o que daria 88,4 % em valor, mas são recortes diferentes | a buscar no Comex Stat (MDIC), filtro por via de transporte, 2023, valor FOB: https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/estatisticas/base-de-dados-bruta | a confirmar (não usar "89 %" até fechar; o `lugar.json` já marca "a confirmar na Marinha") |
-| Exagero vertical 40x | voz e descrição | `lugar.json` | arquivo local | declarado |
+| Exagero vertical 30x | voz e descrição | `lugar.json` (40x até 14/10/2026; motivo no `DIARIO.md`) | arquivo local | declarado |
 
 ## O terreno (gerado pela CLI em 13/10/2026, 21h36)
 

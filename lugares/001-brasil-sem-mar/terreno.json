@@ -42,11 +42,11 @@
       },
       "nan": 5296,
       "licenca": "CC BY 4.0",
-      "atribuicao": "Ryan, W.B.F., S.M. Carbotte, J.O. Coplan, S. O'Hara, A. Melkonian, R. Arko, R.A. Weissel, V. Ferrini, A. Goodwillie, F. Nitsche, J. Bonczkowski e R. Zemsky (2009), Global Multi-Resolution Topography synthesis, Geochem. Geophys. Geosyst., 10, Q03014, doi:10.1029/2008GC002332",
+      "atribuicao": "Ryan, W. B. F., S.M. Carbotte, J. Coplan, S. O'Hara, A. Melkonian, R. Arko, R.A. Weissel, V. Ferrini, A. Goodwillie, F. Nitsche, J. Bonczkowski, and R. Zemsky (2009), Global Multi-Resolution Topography (GMRT) synthesis data set, Geochem. Geophys. Geosyst., 10, Q03014, doi:10.1029/2008GC002332",
       "obtido_em": "2026-10-13T21:36:20-03:00",
       "bytes": 25461566,
       "sha256": "29e0db5109e06b86a32fdfc1fe96c616e817a22ff7925c9fbfaf38145bf28a88",
-      "cache": false
+      "cache": true
     }
   ],
   "mascara": {
@@ -54,6 +54,10 @@
     "nos": 0
   },
   "nodata_preenchidos": 0,
+  "clampados": {
+    "abaixo": 0,
+    "acima": 0
+  },
   "fixture": false,
   "terra": "gmrt",
   "mar": "gmrt",
@@ -62,5 +66,5 @@
     "bytes": 6115265
   },
   "gerado_por": "brasil-sem-mar 0.1.0",
-  "gerado_em": "2026-10-13T21:36:21-03:00"
+  "gerado_em": "2026-10-14T15:00:46-03:00"
 }
