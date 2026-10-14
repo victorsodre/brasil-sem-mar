@@ -1,0 +1,14 @@
+{
+  "slug": "001-brasil-sem-mar",
+  "nome": "Brasil sem mar",
+  "bbox": { "norte": 6.0, "sul": -34.0, "oeste": -74.5, "leste": -28.0 },
+  "exagero_vertical": 40,
+  "largura_max_nos": 2048,
+  "terra": "gmrt",
+  "mar": "gmrt",
+  "mascara": false,
+  "nivel_minimo_m": -6000,
+  "regua": null,
+  "clipe_referencia": "costa vista do mar (Pexels)",
+  "frase_de_vida": "é por ali que passam 89 % das exportações e de onde sai a maior parte do petróleo (a confirmar na Marinha)"
+}

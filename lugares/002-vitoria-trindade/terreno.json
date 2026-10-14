@@ -1,0 +1,44 @@
+{
+  "slug": "002-vitoria-trindade",
+  "largura": 2847,
+  "altura": 561,
+  "bbox": {
+    "norte": -19.491461957057545,
+    "sul": -21.802367681743256,
+    "oeste": -41.00756913142898,
+    "leste": -28.49194258732102
+  },
+  "graus_por_no": {
+    "lon": 0.004396075357958539,
+    "lat": 0.004119261541329252
+  },
+  "metros_por_no": {
+    "x": 458,
+    "y": 459
+  },
+  "km": {
+    "largura": 1303.8,
+    "altura": 257.3
+  },
+  "elev_min_m": -5369.3,
+  "elev_max_m": 1812.3,
+  "fontes": [
+    {
+      "id": "gmrt",
+      "url": "https://www.gmrt.org/services/GridServer?north=-19.5&south=-21.8&west=-41.0&east=-28.5&layer=topo&format=geotiff&mresolution=600",
+      "licenca": "CC BY 4.0",
+      "atribuicao": "Ryan, W.B.F. et al. (2009), Global Multi-Resolution Topography synthesis, Geochem. Geophys. Geosyst., 10, Q03014",
+      "obtido_em": "2026-10-13T21:30:00-03:00",
+      "bytes": 6393522
+    }
+  ],
+  "mascara": {
+    "pct_medido": null,
+    "nos": 0
+  },
+  "nodata_preenchidos": 5694,
+  "fixture": true,
+  "nota": "FIXTURE provisória só com GMRT (sem Copernicus na terra); a CLI substitui este arquivo",
+  "gerado_por": "fixture manual",
+  "gerado_em": "2026-10-13T21:45:00-03:00"
+}

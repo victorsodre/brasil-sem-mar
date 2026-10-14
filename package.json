@@ -1,0 +1,27 @@
+{
+  "name": "brasil-sem-mar",
+  "version": "0.1.0",
+  "description": "Tira a água do Brasil e mostra o relevo real de cada lugar, acima e abaixo do mar, em 3D no navegador. Dado aberto, um comando, sem chave.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Victor Sodré (@ovictor)",
+  "repository": "github:victorsodre/brasil-sem-mar",
+  "homepage": "https://victorsodre.github.io/brasil-sem-mar/",
+  "engines": { "node": ">=22" },
+  "bin": { "brasil-sem-mar": "cli/index.mjs" },
+  "files": ["cli", "README.md", "LICENSE"],
+  "scripts": {
+    "lugar": "node cli/index.mjs",
+    "serve": "node scripts/serve.mjs",
+    "capture": "node captura/capture.mjs",
+    "test": "node --test cli/*.test.mjs scripts/*.test.mjs"
+  },
+  "dependencies": {
+    "geotiff": "2.1.3",
+    "pngjs": "7.0.0"
+  },
+  "devDependencies": {
+    "playwright": "1.61.0",
+    "three": "0.185.1"
+  }
+}

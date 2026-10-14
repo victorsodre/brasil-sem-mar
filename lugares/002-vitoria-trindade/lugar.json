@@ -1,0 +1,14 @@
+{
+  "slug": "002-vitoria-trindade",
+  "nome": "Cadeia Vitória-Trindade",
+  "bbox": { "norte": -19.5, "sul": -21.8, "oeste": -41.0, "leste": -28.5 },
+  "exagero_vertical": 15,
+  "largura_max_nos": 2048,
+  "terra": "copernicus",
+  "mar": "gmrt",
+  "mascara": true,
+  "nivel_minimo_m": -5500,
+  "regua": { "lon": -40.29, "lat": -20.32, "escala": 1 },
+  "clipe_referencia": "Vitória vista do mar ou Ilha da Trindade (Pexels; se não houver, foto CC do Wikimedia Commons com zoompan)",
+  "frase_de_vida": "a pesca comercial já deixou âncora e armadilha nesses corais (a fechar com fonte no NUMEROS.md)"
+}

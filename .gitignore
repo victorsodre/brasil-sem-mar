@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+# dado bruto baixado (cache local, refaz com um comando)
+lugares/*/cache/
+# quadros e vídeos capturados
+captura/saida/
+*.tif
+*.tiff
+*.nc
