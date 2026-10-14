@@ -133,3 +133,15 @@ Medido num patch de 200x200 px da encosta do cone em t = 0: sRGB 16/76/83 antes,
 Decisão de olhar que fica para o Victor, pelo MP4 de 12 s: o morro ainda é um cone liso (é o dado: um nó de 122 m a 636 m por nó). Se incomodar, as saídas são régua de volta à costa plana (o morro vira pano de fundo escuro) ou isolinhas de 25 m só na terra.
 
 Recaptura das três saídas (61 s e 12 s da 002, 10 s da 001) depois dos ajustes; números na entrada seguinte.
+
+## 14/10/2026, 15h40: recaptura final e publicação
+
+Cena com a crista só em encosta suave e o albedo da terra pela metade. Capturas atrás dos cadeados (esteira parada, espera de 1 a 3 ms), Chromium 149 do Playwright com ANGLE Metal na Vega 56, 1080x1920, dpr 1, com o Mac a carga 12 (dois renders do manim de outra sessão rodando ao lado):
+
+- `captura/saida/002-vitoria-trindade/short-0-61/002-vitoria-trindade-0s-61s.mp4`: 1.830 quadros, 19,6 MB, h264 yuv420p crf 18. Sequência em 547,8 s (297 ms por quadro: `setTime` 2,7 ms, screenshot 295 ms; mediana 268, p95 564, máximo 1.030), ffmpeg 22,4 s, total 574,8 s. Determinismo: quadros 1, 915 e 1.830 recapturados em página nova, 0 bytes de diferença. 0 erros e 0 avisos de página.
+- `captura/saida/002-vitoria-trindade/x-0-12/002-vitoria-trindade-0s-12s.mp4`: 360 quadros, 4,1 MB; sequência 89,9 s (248 ms por quadro), ffmpeg 4,5 s, total 98,0 s; determinismo 0 bytes em 1, 180 e 360.
+- Folhas de contato (um quadro a cada 3 s do Short e um por segundo da abertura) olhadas: morro escuro com o cume aceso sob o Cristo em 0 a 6 s, mesas violeta de 12 a 42 s, cones e Trindade com linha d'água de 45 a 61 s.
+
+Publicação: repo público `victorsodre/brasil-sem-mar` (push com `http.postBuffer` de 512 MB; o push padrão caiu com "remote end hung up"), GitHub Pages da branch `main` com `.nojekyll`. Prova de que a demo roda de verdade: `node captura/quadro.mjs 002-vitoria-trindade --t 0,30 --url https://victorsodre.github.io/brasil-sem-mar/index.html` rendeu os dois quadros pela rede com 0 erros, e o quadro de t = 0 do Pages é byte a byte igual ao `q_000001.png` do MP4.
+
+Limpeza: `x-0-12-rev/` (182 MB, recaptura do corretor com a cena anterior) apagada; as sequências PNG das três saídas finais (cerca de 1 GB) ficam até o veredito.

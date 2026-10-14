@@ -57,3 +57,7 @@ Nota do corretor da revisão da 002 (detalhe em `lugares/002-vitoria-trindade/DI
 ## 14/10/2026, tarde: névoa por lugar aplicada
 
 `nevoa_por_km: 0,0014` no `lugar.json` (o valor sugerido na entrada anterior: 27 % de névoa a 400 km em vez de 54 %). Quadros 0, 3, 6 e 9 s olhados ao lado dos de névoa padrão: a costa no horizonte fica um pouco mais legível, mas o quadro continua escuro e o herói é uma faixa fina no horizonte. Fica registrado como limite da 001 com câmera baixa e névoa só; a decisão (segundo clipe do platô olhando para o sul, ou câmera alta aceitando leitura de mapa no post de lançamento do X) é do Victor. MP4 recapturado com a cena nova (crista só em encosta suave, albedo da terra pela metade, clamp anti-ringing, água por Fresnel com extinção).
+
+## 14/10/2026, 15h39: recaptura final
+
+`captura/saida/001-brasil-sem-mar/001-brasil-sem-mar-0s-10s.mp4`: 300 quadros, 3,6 MB; sequência 73,0 s (241 ms por quadro: `setTime` 1,6 ms, screenshot 240 ms), ffmpeg 3,4 s, total 79,3 s; determinismo 0 bytes em 1, 150 e 300; 0 erros e 0 avisos de página; cadeados pegos em 0,9 ms. Cena final (névoa 0,0014/km, crista só em encosta suave, albedo da terra pela metade, clamp anti-ringing). Folha de contato olhada: continua escura, com a costa como faixa no horizonte e o banco violeta subindo à direita; vale o que está na entrada anterior.
