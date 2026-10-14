@@ -14,7 +14,7 @@
     "lugar": "node cli/index.mjs",
     "serve": "node scripts/serve.mjs",
     "capture": "node captura/capture.mjs",
-    "test": "node --test cli/*.test.mjs scripts/*.test.mjs"
+    "test": "node --test cli/*.test.mjs scripts/*.test.mjs captura/*.test.mjs"
   },
   "dependencies": {
     "geotiff": "2.1.3",

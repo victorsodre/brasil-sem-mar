@@ -1,27 +1,37 @@
 #!/usr/bin/env node
 // Acha os picos submarinos de um lugar no heightmap (terreno.png, Terrain-RGB):
 // máximos locais abaixo de 0 m, ordenados por proeminência (altura do cume acima
-// do colo mais alto que o liga a terreno mais alto — o mesmo critério usado para
-// montanhas). Lista lon/lat/profundidade dos N maiores e grava picos.json ao lado.
+// do colo mais alto que o liga a terreno mais alto, o mesmo critério das montanhas).
+// Serve para desenhar a trilha de câmera (camera.json): a tabela sai em coordenadas
+// da cena (km, origem no centro do bbox, +x leste, +z sul), prontas para pos/alvo.
 //
-// Uso: node web/variantes/c/picos.mjs [slug] [--n 10] [--prominencia-min 300] [--raio-km 3]
-// Saída: tabela no terminal + web/variantes/c/picos.json (lon, lat, profundidade_m,
-// proeminencia_m, altura_sobre_fundo_m, col, lin, cena {x, z} em km como no SPEC).
+// Uso: node scripts/picos.mjs <slug> [--n 10] [--prominencia-min 300] [--raio-km 3] [--saida arquivo.json]
+// Saída: tabela no terminal + JSON (padrão captura/saida/<slug>/picos.json, pasta gitignored)
+// com lon, lat, profundidade_m, proeminencia_m, altura_sobre_fundo_m, col, lin e cena {x, z}.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PNG } from 'pngjs';
 
-const AQUI = path.dirname(fileURLToPath(import.meta.url));
-const RAIZ = path.resolve(AQUI, '..', '..', '..');
+const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const opt = (nome, def) => { const i = args.indexOf(nome); return i >= 0 ? args[i + 1] : def; };
-const slug = args.find((a) => !a.startsWith('--') && args[args.indexOf(a) - 1]?.startsWith('--') !== true) || '002-vitoria-trindade';
+const slug = args.find((a, i) => !a.startsWith('--') && !(i > 0 && args[i - 1].startsWith('--')));
+const ajuda = args.includes('--ajuda') || args.includes('-h');
+if (!slug || ajuda) {
+  console.log('uso: node scripts/picos.mjs <slug> [--n 10] [--prominencia-min 300] [--raio-km 3] [--saida arquivo.json]');
+  process.exit(ajuda ? 0 : 1);
+}
 const N = Number(opt('--n', 10));
 const PROM_MIN = Number(opt('--prominencia-min', 300));
 const RAIO_KM = Number(opt('--raio-km', 3));
+const SAIDA = path.resolve(RAIZ, opt('--saida', path.join('captura', 'saida', slug, 'picos.json')));
 
 const dir = path.join(RAIZ, 'lugares', slug);
+if (!fs.existsSync(path.join(dir, 'terreno.png'))) {
+  console.error(`não achei lugares/${slug}/terreno.png (rode antes: node cli/index.mjs ${slug})`);
+  process.exit(1);
+}
 const meta = JSON.parse(fs.readFileSync(path.join(dir, 'terreno.json'), 'utf8'));
 const png = PNG.sync.read(fs.readFileSync(path.join(dir, 'terreno.png')));
 const W = png.width, H = png.height, N_CELULAS = W * H;
@@ -69,7 +79,7 @@ candidatos.sort((a, b) => b.h - a.h);
 
 // 2) proeminência por inundação com heap de máximo: expande sempre a célula mais
 //    alta da fronteira; ao alcançar célula mais alta que o pico, o ponto mais baixo
-//    já visitado é o colo (key col). Se a inundação esgota o mapa, o colo é o mínimo.
+//    já visitado é o colo. Se a inundação esgota o mapa, o colo é o mínimo.
 class HeapMax {
   constructor() { this.k = []; this.v = []; }
   get size() { return this.k.length; }
@@ -93,8 +103,7 @@ class HeapMax {
     return [key, val];
   }
 }
-const visitado = new Uint8Array(N_CELULAS);
-let marca = 0; // usamos valores crescentes para não zerar o array a cada pico
+let marca = 0; // valores crescentes para não zerar o array a cada pico
 const marcas = new Uint32Array(N_CELULAS);
 function proeminencia(i0, h0) {
   marca++;
@@ -113,9 +122,8 @@ function proeminencia(i0, h0) {
   }
   return h0 - maisBaixo; // pico mais alto da sua "ilha" dentro do mapa
 }
-void visitado;
 
-// altura do cume sobre o fundo ao redor (mínimo num raio de 40 km) — o quanto o monte "sobe"
+// altura do cume sobre o fundo ao redor (mínimo num raio de 40 km): o quanto o monte "sobe"
 function alturaSobreFundo(i0, h0) {
   const col0 = i0 % W, lin0 = (i0 - col0) / W;
   const rxx = Math.round(40000 / mpn.x), ryy = Math.round(40000 / mpn.y);
@@ -152,14 +160,15 @@ console.log('#   lon        lat       profund.  proemin.  sobe   cena x    cena 
 top.forEach((p, k) => console.log(
   `${String(k + 1).padStart(2)}  ${p.lon.toFixed(4).padStart(9)}  ${p.lat.toFixed(4).padStart(8)}  ${p.profundidade_m.toFixed(0).padStart(7)} m  ${String(p.proeminencia_m).padStart(6)} m  ${String(p.altura_sobre_fundo_m).padStart(5)}  ${String(p.cena.x).padStart(8)}  ${String(p.cena.z).padStart(8)}`));
 
-// a ilha (máximo acima de 0 m na metade leste), para a trilha terminar nela
+// a ilha (máximo acima de 0 m no terço leste), para a trilha terminar nela
 let iIlha = -1, hIlha = -1e9;
 for (let lin = 0; lin < H; lin++) for (let col = (W * 0.6) | 0; col < W; col++) { const v = h[lin * W + col]; if (v > hIlha) { hIlha = v; iIlha = lin * W + col; } }
-const ilha = iIlha >= 0 ? { lon: +lonDe(iIlha % W).toFixed(4), lat: +latDe(Math.floor(iIlha / W)).toFixed(4), altura_m: +hIlha.toFixed(1), cena: cena(lonDe(iIlha % W), latDe(Math.floor(iIlha / W))) } : null;
+const ilha = iIlha >= 0 && hIlha > 0 ? { lon: +lonDe(iIlha % W).toFixed(4), lat: +latDe(Math.floor(iIlha / W)).toFixed(4), altura_m: +hIlha.toFixed(1), cena: cena(lonDe(iIlha % W), latDe(Math.floor(iIlha / W))) } : null;
 if (ilha) console.log(`ilha mais alta no leste: lon ${ilha.lon} lat ${ilha.lat} ${ilha.altura_m} m  cena ${ilha.cena.x}, ${ilha.cena.z}`);
 
-fs.writeFileSync(path.join(AQUI, 'picos.json'), JSON.stringify({
+fs.mkdirSync(path.dirname(SAIDA), { recursive: true });
+fs.writeFileSync(SAIDA, JSON.stringify({
   slug, largura: W, altura: H, bbox: bb, criterio: { prominencia_min_m: PROM_MIN, raio_km: RAIO_KM, abaixo_de_m: 0 },
   picos: top, ilha_leste: ilha,
 }, null, 2) + '\n');
-console.log(`gravado ${path.relative(RAIZ, path.join(AQUI, 'picos.json'))}`);
+console.log(`gravado ${path.relative(RAIZ, SAIDA)}`);

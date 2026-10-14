@@ -8,7 +8,7 @@
   "mar": "gmrt",
   "mascara": true,
   "nivel_minimo_m": -5500,
-  "regua": { "lon": -40.29, "lat": -20.32, "escala": 1 },
+  "regua": { "lon": -40.29, "lat": -20.32, "escala": 1.5 },
   "clipe_referencia": "Vitória vista do mar ou Ilha da Trindade (Pexels; se não houver, foto CC do Wikimedia Commons com zoompan)",
   "frase_de_vida": "a pesca comercial já deixou âncora e armadilha nesses corais (a fechar com fonte no NUMEROS.md)"
 }

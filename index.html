@@ -3,21 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Brasil sem mar — variante C</title>
-<meta name="description" content="O relevo real de um lugar do Brasil, acima e abaixo do mar, em 3D: a água esvazia e as montanhas submarinas aparecem. Variante C: superfície escura com arestas neon.">
+<title>Brasil sem mar</title>
+<meta name="description" content="O relevo real de um lugar do Brasil, acima e abaixo do mar, em 3D: a água esvazia e as montanhas submarinas aparecem. Dado aberto (Copernicus DEM e GMRT), sem chave, sem build.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M2 26 L11 10 L17 20 L22 14 L30 26 Z' fill='none' stroke='%2339e6ff' stroke-width='2'/></svg>">
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./web/style.css">
+<!-- o importmap tem de vir ANTES de qualquer modulepreload (AGENTS.md: senão "three" não resolve) -->
 <script type="importmap">
 {
   "imports": {
-    "three": "../../vendor/three/three.module.min.js",
-    "three/addons/": "../../vendor/three/addons/",
-    "../../vendor/three/addons/utils/SkeletonUtils.js": "./shim-skeleton-utils.js"
+    "three": "./web/vendor/three/three.module.min.js",
+    "three/addons/": "./web/vendor/three/addons/"
   }
 }
 </script>
-<link rel="modulepreload" href="../../vendor/three/three.module.min.js">
-<link rel="modulepreload" href="../../vendor/three/three.core.min.js">
+<link rel="modulepreload" href="./web/vendor/three/three.module.min.js">
+<link rel="modulepreload" href="./web/vendor/three/three.core.min.js">
 </head>
 <body>
 <canvas id="cena" aria-label="relevo em 3D"></canvas>
@@ -35,6 +35,6 @@
   <footer class="creditos" id="creditos"></footer>
 </div>
 <div id="aviso" class="aviso" hidden></div>
-<script type="module" src="./app.js"></script>
+<script type="module" src="./web/app.js"></script>
 </body>
 </html>

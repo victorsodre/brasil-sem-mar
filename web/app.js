@@ -1,9 +1,17 @@
-// Brasil sem mar — variante C: "superfície escura com arestas".
-// Superfície sólida quase preta (azul-petróleo) sombreada por normal e luz rasante;
-// arestas e contornos neon (ciano na terra, violeta no fundo do mar); rim light nos
-// topos; água como plano translúcido com reflexo planar sutil e borda luminosa;
-// bloom médio-forte; névoa de profundidade; fundo preto puro (a esteira compõe em
-// "lighter"). Contrato: window.__bsm (SPEC.md). Sem Date.now/Math.random na cena.
+// Brasil sem mar: a cena (Three.js, módulo). Superfície sólida quase preta (azul-petróleo)
+// sombreada por normal e luz rasante; arestas e contornos neon (ciano na terra, violeta no
+// fundo do mar); água como plano escuro e translúcido (o relevo submerso aparece fraco por
+// baixo), com reflexo planar sutil, linha de costa luminosa e horizonte que se dissolve
+// (sem borda dura); bloom médio; névoa de profundidade; fundo preto puro (a esteira
+// compõe em "lighter"). Régua: Cristo Redentor (30 m) sobre o terreno em regua.lon/lat.
+// Contrato: window.__bsm (SPEC.md). Nada de Date.now/Math.random/performance.now na cena:
+// o quadro é função pura de t (e do nível d'água) e só muda por setTime(t).
+//
+// URL: index.html?lugar=<slug>&t=<s>&capture=1[&camada=1]
+//   capture=1  sem UI, sem animação automática, dpr 1, fundo #000, sem órbita.
+//   camada=1   albedo da superfície reduzido (linhas mantidas): versão para a esteira
+//              compor em "lighter" por cima de um clipe, sem o corpo azul do relevo
+//              sujar o vídeo de fundo.
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -15,22 +23,24 @@ import { prepararTrilha, trilhaPadrao } from './trilha.js';
 const LOOK = {
   ciano: [0.22, 0.92, 1.0],
   violeta: [0.58, 0.30, 1.0],
-  laranja: [1.0, 0.56, 0.18],
+  cristo: [1.0, 0.86, 0.62],             // branco quente: estátua iluminada, o único acento fora do ciano/violeta
   albedoMar: [0.035, 0.090, 0.150],     // azul-petróleo, lido quase preto no contra
-  albedoTerra: [0.025, 0.105, 0.115],
+  albedoTerra: [0.020, 0.080, 0.090],  // um pouco mais escuro que o mar: morro de um nó perto da câmera não vira pirâmide-gema
   luz: [-0.80, 0.22, 0.40],             // direção DE ONDE vem a luz (rasante, de oés-sudoeste)
   nevoa: 0.0022,                        // 1/km; ~23 % de névoa a 230 km
   contornoMar: 500, contornoTerra: 100, // metros
   bloom: { forca: 0.85, raio: 0.55, limiar: 0.35 },
   exposicao: 1.0,
+  albedoCamada: 0.35,                   // camada=1: corpo do relevo e base da água a 35 %
 };
 
 // ---------------------------------------------------------------- URL e modos
 const url = new URL(location.href);
 const slug = url.searchParams.get('lugar') || '002-vitoria-trindade';
 const CAPTURA = url.searchParams.get('capture') === '1';
+const CAMADA = url.searchParams.get('camada') === '1';
 const tInicial = Number(url.searchParams.get('t') || 0);
-const BASE = '../../../';
+const BASE = './';                       // fetch resolve contra o documento (index.html na raiz)
 const dirLugar = `${BASE}lugares/${slug}/`;
 
 const $ = (id) => document.getElementById(id);
@@ -210,7 +220,8 @@ uniform float uFog;
 uniform vec3 uCyan, uViolet, uAlbMar, uAlbTerra;
 uniform float uContourSea, uContourLand;
 uniform float uCrest;
-uniform vec4 uDbg;   // x: linha d'água/maré, y: rim+cristas, z: contornos, w: corpo
+uniform float uAlbMul;   // 1 normal; camada=1 reduz o corpo (as linhas ficam)
+uniform vec4 uDbg;       // x: linha d'água, y: rim+cristas, z: contornos, w: corpo
 in vec3 vWorld;
 in vec2 vUv;
 out vec4 outColor;
@@ -225,7 +236,10 @@ void main() {
   float dist = length(toCam);
   vec3 V = toCam / max(dist, 1e-4);
   float ndl = dot(n, uLight);
-  float ndv = max(dot(n, V), 0.0);
+  // abs, não max: a malha é mais grossa que o heightmap e, num morro de um nó, a normal
+  // bicúbica do fragmento aponta para longe da câmera num triângulo que ainda é frontal;
+  // com max() o ndv ia a zero e a face inteira virava "silhueta" (lençol ciano no bloom)
+  float ndv = abs(dot(n, V));
   float land = smoothstep(0.0, 20.0, h);     // 0 m exato ainda é fundo do mar (artefato de fusão)
   vec3 neon = mix(uViolet, uCyan, land);
 
@@ -241,9 +255,10 @@ void main() {
 
   // arestas: a silhueta é detectada em espaço de tela (onde n·v cruza zero), fica
   // com ~2 px de largura em qualquer distância; um rim suave e fraco dá volume.
-  // Uma encosta inteira em ângulo rasante NÃO vira chapa (era o defeito da v1).
   float queda = 1.0 / (1.0 + dist * 0.003);
-  float fwNdv = max(fwidth(ndv) * 2.0, 0.004);
+  // teto em fwNdv: perto de um morro de um nó só as normais oscilam, fwidth(ndv) explode
+  // e a "linha de 2 px" virava o morro inteiro em ciano saturado (lençol branco no bloom)
+  float fwNdv = clamp(fwidth(ndv) * 2.0, 0.004, 0.06);
   float silhueta = (1.0 - smoothstep(0.0, fwNdv, ndv)) * smoothstep(0.01, 0.1, slope);
   float rimSuave = pow(1.0 - ndv, 4.0) * smoothstep(0.015, 0.22, slope) * 0.12;
   float rim = (silhueta * 0.9 + rimSuave) * (0.4 + 0.6 * topo) * queda;
@@ -254,9 +269,12 @@ void main() {
   float lap = hL + hR + hU + hD - 4.0 * h;
   float crest = smoothstep(0.0, 1.0, -lap / (k * k) / uCrest) * (0.3 + 0.7 * topo) * queda;
   // relevo em escala larga (m por texel): planície costeira e plataforma rasa (0 a 4 m
-  // em dezenas de km) não ganham linha d'água — nelas a isolinha é fractal e vira chapa
+  // em dezenas de km) não ganham linha d'água: nelas a isolinha é fractal e vira chapa
   float gradK = length(vec2(hR - hL, hD - hU)) / (2.0 * k);
   float relevo = smoothstep(2.0, 8.0, gradK);
+  // aresta só onde há relevo de verdade: lomba de 10 m na plataforma (exagerada 15x)
+  // virava mancha violeta vista de raspão
+  rim *= smoothstep(3.0, 12.0, gradK);
 
   // contornos finos com antialias por fwidth; somem quando ficam densos (moiré)
   float interval = mix(uContourSea, uContourLand, land);
@@ -266,21 +284,25 @@ void main() {
   float lineW = clamp(fw * 1.1, 0.4, interval * 0.08);
   float contour = (1.0 - smoothstep(lineW * 0.5, lineW * 1.5, dC)) * (1.0 - smoothstep(0.10, 0.30, fw / interval));
 
-  // linha d'água atual: traço forte + halo
+  // linha d'água atual: largura só em espaço de tela (~1,5 px), só em encosta com relevo
   float dw = h - uWater;
-  // largura da linha em metros limitada por distância: perto, costa plana e ruidosa
-  // em ângulo rasante não vira chapa branca; longe, a linha nos montes continua legível
-  // linha d'água: largura só em espaço de tela (~1,5 px), sem mínimo em metros —
-  // senão a planície costeira a 1–10 m acende em manchas quando o nível está em 0
-  float lw = max(fwidth(dw) * 1.5, 0.05);
-  float encosta = smoothstep(0.003, 0.03, slope) * relevo;   // platô plano no nível não é linha
+  // teto de 8 m: longe e de raspão um pixel cobre dezenas de metros de altura e a "linha"
+  // de 1,5 px cobriria o platô inteiro de um banco a -10/-60 m (chapa branca no horizonte);
+  // onde o pixel não resolve a linha (fw acima de 8 a 30 m) ela some, em vez de cintilar
+  float lw = clamp(fwidth(dw) * 1.5, 0.05, 8.0);
+  float encosta = smoothstep(0.003, 0.03, slope) * relevo;
   float wline = (1.0 - smoothstep(lw * 0.5, lw * 1.5, abs(dw))) * encosta;
+  wline *= (1.0 - smoothstep(8.0, 30.0, fw)) / (1.0 + dist * 0.004);
   float under = smoothstep(0.0, -40.0, dw);
+  // véu das águas rasas: a plataforma e o topo dos montes aparecem fracos por baixo
+  // da água (some quando o nível desce e o chão fica seco)
+  float raso = exp(-max(-dw, 0.0) / 150.0) * under;
 
-  col *= uDbg.w;
+  col *= uDbg.w * uAlbMul;
+  col += vec3(0.02, 0.07, 0.10) * raso * uDbg.w * uAlbMul;
   col += neon * (min(rim + crest * 0.45, 1.2) * uDbg.y + contour * 0.15 * uDbg.z);
   vec3 corAgua = mix(uCyan, vec3(1.0), 0.45);
-  col += corAgua * wline * 1.1 * uDbg.x;
+  col += corAgua * wline * 0.7 * uDbg.x;
   col *= mix(1.0, 0.6, under);
 
   float fog = 1.0 - exp(-pow(dist * uFog, 2.0));
@@ -308,6 +330,7 @@ uniform vec2 uKm;
 uniform float uWater;
 uniform float uFog;
 uniform float uTime;
+uniform float uAlbMul;
 uniform vec3 uCyan;
 uniform vec4 uDbg;   // x: reflexo, y: borda+halo, z: mostrar só o reflexo, w: base
 in vec3 vWorld;
@@ -319,26 +342,34 @@ void main() {
   vec3 V = toCam / max(dist, 1e-4);
   float ndv = abs(V.y);
   float fres = 0.03 + 0.97 * pow(1.0 - ndv, 5.0);
-  // reflexo planar sutil, com uma ondulação mínima e determinística
+  // horizonte macio: no ângulo rasante (menos de ~2,5 graus) a superfície se dissolve,
+  // em vez de terminar numa reta dura contra o preto
+  float rasante = smoothstep(0.0, 0.045, ndv);
+  // reflexo planar sutil, com uma ondulação mínima e determinística (só depende de t)
   vec2 ruv = vRef.xy / max(vRef.w, 1e-4);
-  vec2 ond = vec2(sin(vWorld.x * 0.9 + vWorld.z * 0.4 + uTime * 0.9), cos(vWorld.z * 1.1 - vWorld.x * 0.3 + uTime * 0.7)) * 0.0022;
+  vec2 ond = vec2(sin(vWorld.x * 0.9 + vWorld.z * 0.4 + uTime * 0.9), cos(vWorld.z * 1.1 - vWorld.x * 0.3 + uTime * 0.7)) * 0.0010;
   vec3 refl = texture(uRefl, clamp(ruv + ond, 0.0, 1.0)).rgb;
-  vec3 base = vec3(0.006, 0.018, 0.040) + vec3(0.03, 0.10, 0.14) * fres;   // sheen rasante: a superfície existe no quadro zero
-  vec3 col = base * uDbg.w + refl * (0.15 + 0.35 * fres) * uDbg.x;
-  // borda luminosa: onde o terreno está logo abaixo da superfície
+  // base escura e constante: um brilho de Fresnel aqui tinha pico ~1 grau abaixo do nível do
+  // olho e desenhava uma reta fina atravessando o quadro inteiro no horizonte
+  vec3 base = vec3(0.008, 0.022, 0.050);
+  vec3 col = base * uAlbMul * uDbg.w + refl * (0.18 + 0.30 * fres) * rasante * uDbg.x;
+  // linha de costa luminosa: onde o terreno está logo abaixo da superfície
   vec2 uvT = vWorld.xz / uKm + 0.5;
   vec2 pT = clamp(uvT, 0.0, 1.0) * uTexSize - 0.5;
   float hT = alturaBL(pT);
   float gradK = length(vec2(alturaBL(pT + vec2(2.0, 0.0)) - alturaBL(pT - vec2(2.0, 0.0)), alturaBL(pT + vec2(0.0, 2.0)) - alturaBL(pT - vec2(0.0, 2.0)))) / 4.0;
   float relevo = smoothstep(2.0, 8.0, gradK);    // sem borda luminosa em planície rasa
   float depth = uWater - hT;                      // coluna d'água aqui (m)
-  float fwd = clamp(fwidth(depth) * 2.0, 0.5, 1.5 + dist * 0.25);   // ~2 px na costa; em ângulo rasante não vira faixa
+  // largura só em espaço de tela (~2 px): um piso em metros fazia a baía rasa de 2 a 5 m
+  // ao lado do Cristo virar lençol branco; o halo também acompanha o pixel, não a profundidade
+  float fwd = max(fwidth(depth) * 2.0, 0.3);
   float edge = (1.0 - smoothstep(0.0, fwd, depth)) * step(0.05, depth);   // 5 cm: baía plana a 0 m fica fora
-  float halo = exp(-max(depth, 0.0) / 12.0) * 0.15 * step(0.05, depth);
-  col += mix(uCyan, vec3(1.0), 0.35) * (edge * 1.0 + halo) * relevo * uDbg.y;
+  float halo = exp(-max(depth, 0.0) / (3.0 * fwd)) * 0.10 * step(0.05, depth);
+  col += mix(uCyan, vec3(1.0), 0.35) * (edge * 0.7 + halo) * relevo / (1.0 + dist * 0.004) * uDbg.y;
   if (uDbg.z > 0.5) { outColor = vec4(refl, 1.0); return; }
-  float alpha = 0.72 + 0.26 * fres;
-  alpha = max(alpha, edge * 0.95);
+  // translúcida: o relevo submerso aparece por baixo (mais no olhar de cima, menos no rasante)
+  float alpha = (0.52 + 0.26 * fres) * rasante;
+  alpha = max(alpha, edge * relevo * 0.9 * rasante);
   float fog = 1.0 - exp(-pow(dist * uFog, 2.0));
   col *= (1.0 - fog);
   alpha *= (1.0 - fog);
@@ -370,7 +401,8 @@ void main() {
   vec3 V = toCam / max(dist, 1e-4);
   float ndl = max(dot(n, uLight), 0.0);
   float rim = pow(1.0 - max(dot(n, V), 0.0), 2.5);
-  vec3 col = vec3(0.02, 0.018, 0.015) + uCor * (ndl * 0.25 + rim * 1.6);
+  // corpo visível (estátua iluminada) mais um rim que acende no bloom; acima disso vira bolha
+  vec3 col = uCor * (0.05 + ndl * 0.25 + rim * 1.0);
   float fog = 1.0 - exp(-pow(dist * uFog, 2.0));
   outColor = vec4(col * (1.0 - fog), 1.0);
 }
@@ -378,20 +410,24 @@ void main() {
 
 // ---------------------------------------------------------------- cena
 async function iniciar() {
-  const t0 = performance.now();
+  // sem relógio aqui: o tempo até ready quem mede é a captura (pronto_ms), de fora da página
   const [lugar, meta] = await Promise.all([carregarJson(dirLugar + 'lugar.json'), carregarJson(dirLugar + 'terreno.json')]);
   const exagero = lugar.exagero_vertical ?? 15;
   const exag = exagero / 1000; // km por metro
   const nivelMin = lugar.nivel_minimo_m ?? -6000;
 
-  // trilha: a da variante (./camera.json) se for deste lugar; senão a do lugar; senão a padrão
+  // escala da cena: tudo vem do terreno.json (bbox) e do lugar.json (exagero), nunca de número fixo
   const bb = meta.bbox;
   const latC = (bb.norte + bb.sul) / 2;
   const kmW = (bb.leste - bb.oeste) * 111.32 * Math.cos(latC * Math.PI / 180);
   const kmH = (bb.norte - bb.sul) * 111.32;
+
+  // trilha: sempre lugares/<slug>/camera.json; sem o arquivo, uma órbita baixa padrão
   let trilhaJson = null;
-  try { const c = await carregarJson('./camera.json'); if (!c.lugar || c.lugar === slug) trilhaJson = c; } catch { /* sem camera.json aqui */ }
-  if (!trilhaJson) { try { trilhaJson = await carregarJson(dirLugar + 'camera.json'); } catch { trilhaJson = trilhaPadrao(kmW, kmH, nivelMin); } }
+  try { trilhaJson = await carregarJson(dirLugar + 'camera.json'); } catch (e) {
+    console.warn(`sem camera.json em lugares/${slug}/ (${e?.message || e}); uso a trilha padrão`);
+    trilhaJson = trilhaPadrao(kmW, kmH, nivelMin);
+  }
   const trilha = prepararTrilha(trilhaJson);
 
   // terreno
@@ -455,6 +491,7 @@ async function iniciar() {
     return g;
   })();
 
+  const albMul = CAMADA ? LOOK.albedoCamada : 1.0;
   const luz = new THREE.Vector3(...LOOK.luz).normalize();
   const matTerreno = new THREE.ShaderMaterial({
     glslVersion: THREE.GLSL3, vertexShader: VS_TERRENO, fragmentShader: FS_TERRENO,
@@ -463,7 +500,8 @@ async function iniciar() {
       uKm: { value: new THREE.Vector2(kmW, kmH) }, uWater: { value: 0 }, uLight: { value: luz }, uFog: { value: LOOK.nevoa },
       uCyan: { value: new THREE.Vector3(...LOOK.ciano) }, uViolet: { value: new THREE.Vector3(...LOOK.violeta) },
       uAlbMar: { value: new THREE.Vector3(...LOOK.albedoMar) }, uAlbTerra: { value: new THREE.Vector3(...LOOK.albedoTerra) },
-      uContourSea: { value: LOOK.contornoMar }, uContourLand: { value: LOOK.contornoTerra }, uCrest: { value: 400.0 }, uDbg: { value: new THREE.Vector4(1, 1, 1, 1) },
+      uContourSea: { value: LOOK.contornoMar }, uContourLand: { value: LOOK.contornoTerra }, uCrest: { value: 400.0 },
+      uAlbMul: { value: albMul }, uDbg: { value: new THREE.Vector4(1, 1, 1, 1) },
     },
     side: THREE.FrontSide,
   });
@@ -471,7 +509,8 @@ async function iniciar() {
   terreno.frustumCulled = false;
   scene.add(terreno);
 
-  // água: plano translúcido com reflexo planar (render-to-texture, câmera espelhada)
+  // água: plano translúcido com reflexo planar (render-to-texture, câmera espelhada).
+  // O plano é bem maior que o terreno; a borda some pela névoa e pelo fade rasante do shader.
   const reflRT = new THREE.WebGLRenderTarget(Math.max(2, Math.floor(W * dpr / 2)), Math.max(2, Math.floor(H * dpr / 2)), {
     type: THREE.HalfFloatType, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: true,
   });
@@ -481,7 +520,7 @@ async function iniciar() {
       uAlt: { value: texAlt }, uTexSize: { value: new THREE.Vector2(ter.w, ter.h) }, uRefl: { value: reflRT.texture },
       uTexMatrix: { value: new THREE.Matrix4() }, uKm: { value: new THREE.Vector2(kmW, kmH) }, uWater: { value: 0 },
       uFog: { value: LOOK.nevoa }, uTime: { value: 0 }, uCyan: { value: new THREE.Vector3(...LOOK.ciano) },
-      uDbg: { value: new THREE.Vector4(1, 1, 0, 1) },
+      uAlbMul: { value: albMul }, uDbg: { value: new THREE.Vector4(1, 1, 0, 1) },
     },
     transparent: true, depthWrite: false, side: THREE.DoubleSide,
   });
@@ -491,20 +530,21 @@ async function iniciar() {
   agua.frustumCulled = false;
   scene.add(agua);
 
-  // régua: Cristo Redentor (30 m, base em y = 0) sobre o terreno em regua.lon/lat
+  // régua: Cristo Redentor (30 m, base em y = 0) sobre o terreno em regua.lon/lat,
+  // com a escala do relevo (exagero) vezes regua.escala (declarado no lugar.json)
   let regua = null;
-  if (lugar.regua && Number.isFinite(lugar.regua.lon)) {
+  const escalaRegua = Number(lugar.regua?.escala) || 1;
+  if (lugar.regua && Number.isFinite(lugar.regua.lon) && Number.isFinite(lugar.regua.lat)) {
     try {
       const g = await carregarRegua(`${BASE}regua/cristo-web.glb`);
       const mat = new THREE.ShaderMaterial({
         glslVersion: THREE.GLSL3, vertexShader: VS_REGUA, fragmentShader: FS_REGUA,
-        uniforms: { uLight: { value: luz }, uCor: { value: new THREE.Vector3(...LOOK.laranja) }, uFog: { value: LOOK.nevoa } },
+        uniforms: { uLight: { value: luz }, uCor: { value: new THREE.Vector3(...LOOK.cristo) }, uFog: { value: LOOK.nevoa } },
       });
       regua = new THREE.Mesh(g, mat);
       const u = (lugar.regua.lon - bb.oeste) / (bb.leste - bb.oeste), v = (bb.norte - lugar.regua.lat) / (bb.norte - bb.sul);
-      const hR = alturaEm(ter, u, v);
-      const s = exag * (lugar.regua.escala ?? 1);
-      regua.scale.setScalar(s);
+      const hR = Math.max(0, alturaEm(ter, u, v));   // nunca abaixo do mar
+      regua.scale.setScalar(exag * escalaRegua);
       regua.position.set((u - 0.5) * kmW, hR * exag, (v - 0.5) * kmH);
       regua.rotation.y = Math.PI / 2; // o GLB olha para +z; aqui olha para o leste (+x)
       scene.add(regua);
@@ -560,13 +600,14 @@ async function iniciar() {
     q.z = -1.0;
     q.w = (1.0 + pm.elements[10]) / pm.elements[14];
     clip.multiplyScalar(2.0 / clip.dot(q));
-    pm.elements[2] = clip.x; pm.elements[6] = clip.y; pm.elements[10] = clip.z + 1.0 - 0.0; pm.elements[14] = clip.w;
+    pm.elements[2] = clip.x; pm.elements[6] = clip.y; pm.elements[10] = clip.z + 1.0; pm.elements[14] = clip.w;
+    const aguaVisivel = agua.visible;   // o diagnóstico pode ter escondido a água; não religar
     agua.visible = false;
     renderer.setRenderTarget(reflRT);
     renderer.clear();
     renderer.render(scene, mirrorCam);
     renderer.setRenderTarget(null);
-    agua.visible = true;
+    agua.visible = aguaVisivel;
   }
 
   // estado
@@ -635,7 +676,10 @@ async function iniciar() {
     desenhar();
     return proximoQuadro();
   };
-  bsm.metrics = () => ({ calls: ultimas.calls, triangles: ultimas.triangles, segmentos: [segX, segZ], textura: [ter.w, ter.h], dpr, largura: W, altura: H });
+  bsm.metrics = () => ({
+    calls: ultimas.calls, triangles: ultimas.triangles, segmentos: [segX, segZ], textura: [ter.w, ter.h],
+    dpr, largura: W, altura: H, camada: CAMADA, regua_escala: regua ? escalaRegua : null,
+  });
 
   // ---- interativo
   let controls = null;
@@ -659,9 +703,15 @@ async function iniciar() {
       if (id.startsWith('copernicus')) return vistos.has('cop') ? null : (vistos.add('cop'), 'Copernicus DEM GLO-30 (ESA/Airbus), uso livre com atribuição');
       return `${id}${f.licenca ? `, ${f.licenca}` : ''}`;
     }).filter(Boolean);
-    $('creditos').innerHTML = `Relevo: ${fontes.join(' · ') || 'fonte não declarada'}${meta.fixture ? ' · <em>dados provisórios</em>' : ''}<br>` +
-      `Régua: <a href="https://sketchfab.com/3d-models/cristo-redentor" target="_blank" rel="noopener">Cristo Redentor</a> por Parlin Sitorus (Sketchfab), CC BY 4.0 · 30 m reais, escala ${exagero}x` +
+    const escalaTxt = escalaRegua === 1
+      ? `30 m reais na mesma escala do relevo (${exagero}x)`
+      : `30 m reais, desenhado ${escalaRegua}x maior que a escala do relevo (${exagero}x) para aparecer na tela`;
+    const creditos = $('creditos');
+    creditos.innerHTML = `Relevo: ${fontes.join(' · ') || 'fonte não declarada'}${meta.fixture ? ' · <em>dados provisórios</em>' : ''}<br>` +
+      (regua ? `Régua: <a href="https://sketchfab.com/3d-models/cristo-redentor" target="_blank" rel="noopener">Cristo Redentor</a> por Parlin Sitorus (Sketchfab), CC BY 4.0 · ${escalaTxt}` : 'Sem régua neste lugar') +
       ` · Código: MIT`;
+    // o texto exato de atribuição de cada fonte (terreno.json) fica no title, inteiro
+    creditos.title = (meta.fontes || []).map((f) => `${f.id}: ${f.atribuicao || ''}`.trim()).filter((s) => !s.endsWith(':')).join('\n');
     const bReproduzir = $('reproduzir'), sTempo = $('tempo'), oTempo = $('tempo-val'), sAgua = $('agua'), oAgua = $('agua-val');
     sTempo.max = String(trilha.duracao); sAgua.min = String(nivelMin);
     const fmtM = (m) => `${Math.round(m).toLocaleString('pt-BR')} m`;
@@ -669,6 +719,7 @@ async function iniciar() {
       sTempo.value = String(estado.t); oTempo.value = `${estado.t.toFixed(1)} s / ${trilha.duracao} s`;
       sAgua.value = String(estado.nivel_agua_m); oAgua.value = fmtM(estado.nivel_agua_m);
     };
+    // o botão "Reproduzir" avança t de fora da cena (relógio do navegador só aqui, nunca no quadro)
     let tocando = false, ultimoTs = null;
     const laco = (ts) => {
       if (!tocando) return;
@@ -704,10 +755,11 @@ async function iniciar() {
   await proximoQuadro();
   const info = {
     slug, textura: [ter.w, ter.h], segmentos: [segX, segZ], triangulos: segX * segZ * 2,
-    regua: regua ? { altura_terreno_m: regua.userData.altura_terreno_m } : null, ready_ms: Math.round(performance.now() - t0),
+    regua: regua ? { altura_terreno_m: regua.userData.altura_terreno_m, escala: escalaRegua } : null,
+    camada: CAMADA,
     elev: [ter.mn, ter.mx], km: [kmW, kmH],
   };
-  console.log('brasil-sem-mar C pronto', JSON.stringify(info));
+  console.log('brasil-sem-mar pronto', JSON.stringify(info));
   return info;
 }
 
