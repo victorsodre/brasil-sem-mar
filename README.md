@@ -10,12 +10,12 @@ A tese é "Brasil com nome, número e fonte": cada lugar leva `NUMEROS.md` (cada
 
 | Lugar | Vídeo | Código | Demo | Notas |
 |---|---|---|---|---|
-| 001 Brasil sem mar (o país inteiro, só render) | em breve | [lugares/001-brasil-sem-mar](lugares/001-brasil-sem-mar/) | em breve | [NUMEROS](lugares/001-brasil-sem-mar/NUMEROS.md) · [DIARIO](lugares/001-brasil-sem-mar/DIARIO.md) |
-| 002 Cadeia Vitória-Trindade | em breve | [lugares/002-vitoria-trindade](lugares/002-vitoria-trindade/) | em breve | [NUMEROS](lugares/002-vitoria-trindade/NUMEROS.md) · [PROVA-INEDITA](lugares/002-vitoria-trindade/PROVA-INEDITA.md) · [DIARIO](lugares/002-vitoria-trindade/DIARIO.md) |
+| 001 Brasil sem mar (o país inteiro, só render) | em breve | [lugares/001-brasil-sem-mar](lugares/001-brasil-sem-mar/) | [demo](https://victorsodre.github.io/brasil-sem-mar/index.html?lugar=001-brasil-sem-mar) | [NUMEROS](lugares/001-brasil-sem-mar/NUMEROS.md) · [DIARIO](lugares/001-brasil-sem-mar/DIARIO.md) |
+| 002 Cadeia Vitória-Trindade | em breve | [lugares/002-vitoria-trindade](lugares/002-vitoria-trindade/) | [demo](https://victorsodre.github.io/brasil-sem-mar/index.html?lugar=002-vitoria-trindade) | [NUMEROS](lugares/002-vitoria-trindade/NUMEROS.md) · [PROVA-INEDITA](lugares/002-vitoria-trindade/PROVA-INEDITA.md) · [DIARIO](lugares/002-vitoria-trindade/DIARIO.md) |
 
 "Só render" (001): o país inteiro a cerca de 1,9 km por nó (só GMRT), sem régua e sem página interativa a 30 m; a câmera é a trilha de 10 s do `camera.json` e o que sai é o MP4 da captura. A 002 é a peça completa (página, régua, Short de 61 s).
 
-Demo = a página no GitHub Pages (`https://victorsodre.github.io/brasil-sem-mar/index.html?lugar=<slug>`), ainda não publicada; o repositório remoto também ainda não existe, então o `git clone` abaixo só vai funcionar depois do push. Os terrenos da 001 e da 002 que estão no repositório foram gerados pela CLI em 13/10/2026 (o `terreno.json` foi regravado do cache em 14/10/2026 com os textos de atribuição corrigidos; o `terreno.png` é byte a byte o mesmo); o `terreno.json` de cada um guarda a proveniência (URL exata de cada chamada, bytes, sha256, resolução devolvida, fração medida).
+Demo = a página no GitHub Pages (`https://victorsodre.github.io/brasil-sem-mar/index.html?lugar=<slug>`), publicada em 14/10/2026 da branch `main` (a mesma página que roda local com `npm run serve`). Os vídeos entram na tabela quando forem postados. Os terrenos da 001 e da 002 que estão no repositório foram gerados pela CLI em 13/10/2026 (o `terreno.json` foi regravado do cache em 14/10/2026 com os textos de atribuição corrigidos; o `terreno.png` é byte a byte o mesmo); o `terreno.json` de cada um guarda a proveniência (URL exata de cada chamada, bytes, sha256, resolução devolvida, fração medida).
 
 ## Usar em 30 segundos
 
