@@ -1,44 +1,229 @@
 {
   "slug": "002-vitoria-trindade",
-  "largura": 2847,
-  "altura": 561,
+  "largura": 2048,
+  "altura": 403,
   "bbox": {
-    "norte": -19.491461957057545,
-    "sul": -21.802367681743256,
-    "oeste": -41.00756913142898,
-    "leste": -28.49194258732102
+    "norte": -19.5,
+    "sul": -21.8,
+    "oeste": -41,
+    "leste": -28.5
   },
   "graus_por_no": {
-    "lon": 0.004396075357958539,
-    "lat": 0.004119261541329252
+    "lon": 0.006103515625,
+    "lat": 0.005707196029776677
   },
   "metros_por_no": {
-    "x": 458,
-    "y": 459
+    "x": 635.8,
+    "y": 635.3
   },
   "km": {
-    "largura": 1303.8,
-    "altura": 257.3
+    "largura": 1302.1,
+    "altura": 256
   },
-  "elev_min_m": -5369.3,
-  "elev_max_m": 1812.3,
+  "elev_min_m": -5369.1,
+  "elev_max_m": 1847.1,
   "fontes": [
     {
       "id": "gmrt",
-      "url": "https://www.gmrt.org/services/GridServer?north=-19.5&south=-21.8&west=-41.0&east=-28.5&layer=topo&format=geotiff&mresolution=600",
+      "url": "https://www.gmrt.org/services/GridServer?north=-19.5&south=-21.8&west=-41&east=-28.5&layer=topo&format=geotiff&mresolution=636",
+      "camada": "topo",
+      "mresolution_pedido": 636,
+      "largura": 2847,
+      "altura": 561,
+      "metros_por_no_devolvido": {
+        "x": 457.9,
+        "y": 458.6
+      },
+      "bbox_devolvido": {
+        "norte": -19.491461957057545,
+        "sul": -21.802367681743256,
+        "oeste": -41.00756913142898,
+        "leste": -28.49194258732102
+      },
+      "nan": 5694,
       "licenca": "CC BY 4.0",
-      "atribuicao": "Ryan, W.B.F. et al. (2009), Global Multi-Resolution Topography synthesis, Geochem. Geophys. Geosyst., 10, Q03014",
-      "obtido_em": "2026-10-13T21:30:00-03:00",
-      "bytes": 6393522
+      "atribuicao": "Ryan, W.B.F., S.M. Carbotte, J.O. Coplan, S. O'Hara, A. Melkonian, R. Arko, R.A. Weissel, V. Ferrini, A. Goodwillie, F. Nitsche, J. Bonczkowski e R. Zemsky (2009), Global Multi-Resolution Topography synthesis, Geochem. Geophys. Geosyst., 10, Q03014, doi:10.1029/2008GC002332",
+      "obtido_em": "2026-10-13T21:34:47-03:00",
+      "bytes": 6393522,
+      "sha256": "4cabc002e35169aac3833bc6a01293458d6f1901255d3f1a1770e7a21ebe1fec",
+      "cache": true
+    },
+    {
+      "id": "gmrt-topo-mask",
+      "url": "https://www.gmrt.org/services/GridServer?north=-19.5&south=-21.8&west=-41&east=-28.5&layer=topo-mask&format=geotiff&mresolution=636",
+      "camada": "topo-mask",
+      "mresolution_pedido": 636,
+      "largura": 2847,
+      "altura": 561,
+      "licenca": "CC BY 4.0",
+      "atribuicao": "Ryan, W.B.F., S.M. Carbotte, J.O. Coplan, S. O'Hara, A. Melkonian, R. Arko, R.A. Weissel, V. Ferrini, A. Goodwillie, F. Nitsche, J. Bonczkowski e R. Zemsky (2009), Global Multi-Resolution Topography synthesis, Geochem. Geophys. Geosyst., 10, Q03014, doi:10.1029/2008GC002332",
+      "obtido_em": "2026-10-13T21:34:57-03:00",
+      "bytes": 6393522,
+      "sha256": "0a2e280ed01a90b32b73a115f2b5c0d7acc1cf8affed6b02da54f86b4ac056f3",
+      "cache": true
+    },
+    {
+      "id": "copernicus-glo30",
+      "url": "https://copernicus-dem-30m.s3.amazonaws.com",
+      "tiles": [
+        "Copernicus_DSM_COG_10_S20_00_W040_00_DEM",
+        "Copernicus_DSM_COG_10_S20_00_W041_00_DEM",
+        "Copernicus_DSM_COG_10_S21_00_W029_00_DEM",
+        "Copernicus_DSM_COG_10_S21_00_W030_00_DEM",
+        "Copernicus_DSM_COG_10_S21_00_W041_00_DEM",
+        "Copernicus_DSM_COG_10_S22_00_W041_00_DEM"
+      ],
+      "tiles_oceano": [
+        "Copernicus_DSM_COG_10_S20_00_W029_00_DEM",
+        "Copernicus_DSM_COG_10_S20_00_W030_00_DEM",
+        "Copernicus_DSM_COG_10_S20_00_W031_00_DEM",
+        "Copernicus_DSM_COG_10_S20_00_W032_00_DEM",
+        "Copernicus_DSM_COG_10_S20_00_W033_00_DEM",
+        "Copernicus_DSM_COG_10_S20_00_W034_00_DEM",
+        "Copernicus_DSM_COG_10_S20_00_W035_00_DEM",
+        "Copernicus_DSM_COG_10_S20_00_W036_00_DEM",
+        "Copernicus_DSM_COG_10_S20_00_W037_00_DEM",
+        "Copernicus_DSM_COG_10_S20_00_W038_00_DEM",
+        "Copernicus_DSM_COG_10_S20_00_W039_00_DEM",
+        "Copernicus_DSM_COG_10_S21_00_W031_00_DEM",
+        "Copernicus_DSM_COG_10_S21_00_W032_00_DEM",
+        "Copernicus_DSM_COG_10_S21_00_W033_00_DEM",
+        "Copernicus_DSM_COG_10_S21_00_W034_00_DEM",
+        "Copernicus_DSM_COG_10_S21_00_W035_00_DEM",
+        "Copernicus_DSM_COG_10_S21_00_W036_00_DEM",
+        "Copernicus_DSM_COG_10_S21_00_W037_00_DEM",
+        "Copernicus_DSM_COG_10_S21_00_W038_00_DEM",
+        "Copernicus_DSM_COG_10_S21_00_W039_00_DEM",
+        "Copernicus_DSM_COG_10_S21_00_W040_00_DEM",
+        "Copernicus_DSM_COG_10_S22_00_W029_00_DEM",
+        "Copernicus_DSM_COG_10_S22_00_W030_00_DEM",
+        "Copernicus_DSM_COG_10_S22_00_W031_00_DEM",
+        "Copernicus_DSM_COG_10_S22_00_W032_00_DEM",
+        "Copernicus_DSM_COG_10_S22_00_W033_00_DEM",
+        "Copernicus_DSM_COG_10_S22_00_W034_00_DEM",
+        "Copernicus_DSM_COG_10_S22_00_W035_00_DEM",
+        "Copernicus_DSM_COG_10_S22_00_W036_00_DEM",
+        "Copernicus_DSM_COG_10_S22_00_W037_00_DEM",
+        "Copernicus_DSM_COG_10_S22_00_W038_00_DEM",
+        "Copernicus_DSM_COG_10_S22_00_W039_00_DEM",
+        "Copernicus_DSM_COG_10_S22_00_W040_00_DEM"
+      ],
+      "overview": 3,
+      "overview_nos": 450,
+      "graus_por_no": 0.0022222222222222222,
+      "licenca": "Copernicus DEM GLO-30: uso livre com atribuição (licença Copernicus DEM, ESA/Airbus; termos em https://spacedata.copernicus.eu/)",
+      "atribuicao": "© DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+      "obtido_em": "2026-10-13T21:39:18-03:00",
+      "bytes": 1798779,
+      "sha256": "e437f901f478375fb71c2a20f7f80709178a344527f4eaf74ee9d5538fa856fc",
+      "detalhe": [
+        {
+          "tile": "Copernicus_DSM_COG_10_S20_00_W040_00_DEM",
+          "janela": [
+            0,
+            224,
+            450,
+            450
+          ],
+          "bytes": 262146,
+          "pedidos": 2,
+          "sha256": "73b3bf62434b60690289210712eec29c7460c39bdde2c7910fe829b6a42b1b55",
+          "obtido_em": "2026-10-13T21:39:17-03:00",
+          "cache": true,
+          "nodata_nos": 0
+        },
+        {
+          "tile": "Copernicus_DSM_COG_10_S20_00_W041_00_DEM",
+          "janela": [
+            0,
+            224,
+            450,
+            450
+          ],
+          "bytes": 655362,
+          "pedidos": 2,
+          "sha256": "02319dcf494c498425f0a439e2806506b64fba6f90e769c5014621503e11293d",
+          "obtido_em": "2026-10-13T21:39:17-03:00",
+          "cache": true,
+          "nodata_nos": 0
+        },
+        {
+          "tile": "Copernicus_DSM_COG_10_S21_00_W029_00_DEM",
+          "janela": [
+            0,
+            0,
+            227,
+            450
+          ],
+          "bytes": 94835,
+          "pedidos": 1,
+          "sha256": "58fe047fbba4785ec4db7e53c3f9267dc3cef3a0e5e66f0c56e6b7f6487f8cc4",
+          "obtido_em": "2026-10-13T21:39:18-03:00",
+          "cache": true,
+          "nodata_nos": 0
+        },
+        {
+          "tile": "Copernicus_DSM_COG_10_S21_00_W030_00_DEM",
+          "janela": [
+            0,
+            0,
+            450,
+            450
+          ],
+          "bytes": 131073,
+          "pedidos": 1,
+          "sha256": "e3d338da0ec73632540b82f2af780d546be4d314a5dcb52fee127dc118ff4ad7",
+          "obtido_em": "2026-10-13T21:39:18-03:00",
+          "cache": true,
+          "nodata_nos": 0
+        },
+        {
+          "tile": "Copernicus_DSM_COG_10_S21_00_W041_00_DEM",
+          "janela": [
+            0,
+            0,
+            450,
+            450
+          ],
+          "bytes": 524290,
+          "pedidos": 2,
+          "sha256": "3ca913f819ddbea6cc73e5bbe58cd19d328ee57f6bde5f6eb37beb96335204f0",
+          "obtido_em": "2026-10-13T21:39:17-03:00",
+          "cache": true,
+          "nodata_nos": 0
+        },
+        {
+          "tile": "Copernicus_DSM_COG_10_S22_00_W041_00_DEM",
+          "janela": [
+            0,
+            0,
+            450,
+            362
+          ],
+          "bytes": 131073,
+          "pedidos": 1,
+          "sha256": "217b16366b4060fe45c89e82c2b98ad0f2bd4e2621f61c0c220abb9b5a2b1455",
+          "obtido_em": "2026-10-13T21:39:18-03:00",
+          "cache": true,
+          "nodata_nos": 0
+        }
+      ]
     }
   ],
   "mascara": {
-    "pct_medido": null,
-    "nos": 0
+    "pct_medido": 8.4,
+    "nos": 66900,
+    "nos_mar": 792363,
+    "base": "nós com elevação <= 0 m"
   },
-  "nodata_preenchidos": 5694,
-  "fixture": true,
-  "nota": "FIXTURE provisória só com GMRT (sem Copernicus na terra); a CLI substitui este arquivo",
-  "gerado_por": "fixture manual",
-  "gerado_em": "2026-10-13T21:45:00-03:00"
+  "nodata_preenchidos": 0,
+  "fixture": false,
+  "terra": "copernicus",
+  "mar": "gmrt",
+  "convencao": "nó = centro de célula; linha 0 = norte, coluna 0 = oeste; Terrain-RGB h = -10000 + (R*65536 + G*256 + B) * 0,1",
+  "png": {
+    "bytes": 1175983
+  },
+  "gerado_por": "brasil-sem-mar 0.1.0",
+  "gerado_em": "2026-10-13T21:39:51-03:00"
 }

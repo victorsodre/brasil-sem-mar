@@ -1,0 +1,66 @@
+{
+  "slug": "001-brasil-sem-mar",
+  "largura": 2048,
+  "altura": 1816,
+  "bbox": {
+    "norte": 6,
+    "sul": -34,
+    "oeste": -74.5,
+    "leste": -28
+  },
+  "graus_por_no": {
+    "lon": 0.022705078125,
+    "lat": 0.022026431718061675
+  },
+  "metros_por_no": {
+    "x": 2452.5,
+    "y": 2452
+  },
+  "km": {
+    "largura": 5022.6,
+    "altura": 4452.8
+  },
+  "elev_min_m": -8079.2,
+  "elev_max_m": 6468.8,
+  "fontes": [
+    {
+      "id": "gmrt",
+      "url": "https://www.gmrt.org/services/GridServer?north=6&south=-34&west=-74.5&east=-28&layer=topo&format=geotiff&mresolution=2452",
+      "camada": "topo",
+      "mresolution_pedido": 2452,
+      "largura": 2648,
+      "altura": 2402,
+      "metros_por_no_devolvido": {
+        "x": 1899.3,
+        "y": 1855.3
+      },
+      "bbox_devolvido": {
+        "norte": 6.009051799083491,
+        "sul": -34.02457528414729,
+        "oeste": -74.54004238288628,
+        "leste": -27.975582617113716
+      },
+      "nan": 5296,
+      "licenca": "CC BY 4.0",
+      "atribuicao": "Ryan, W.B.F., S.M. Carbotte, J.O. Coplan, S. O'Hara, A. Melkonian, R. Arko, R.A. Weissel, V. Ferrini, A. Goodwillie, F. Nitsche, J. Bonczkowski e R. Zemsky (2009), Global Multi-Resolution Topography synthesis, Geochem. Geophys. Geosyst., 10, Q03014, doi:10.1029/2008GC002332",
+      "obtido_em": "2026-10-13T21:36:20-03:00",
+      "bytes": 25461566,
+      "sha256": "29e0db5109e06b86a32fdfc1fe96c616e817a22ff7925c9fbfaf38145bf28a88",
+      "cache": false
+    }
+  ],
+  "mascara": {
+    "pct_medido": null,
+    "nos": 0
+  },
+  "nodata_preenchidos": 0,
+  "fixture": false,
+  "terra": "gmrt",
+  "mar": "gmrt",
+  "convencao": "nó = centro de célula; linha 0 = norte, coluna 0 = oeste; Terrain-RGB h = -10000 + (R*65536 + G*256 + B) * 0,1",
+  "png": {
+    "bytes": 6115265
+  },
+  "gerado_por": "brasil-sem-mar 0.1.0",
+  "gerado_em": "2026-10-13T21:36:21-03:00"
+}

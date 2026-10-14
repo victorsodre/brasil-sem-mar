@@ -1,0 +1,87 @@
+{
+  "lugar": "002-vitoria-trindade",
+  "duracao_s": 61,
+  "fps": 30,
+  "nota": "Unidades em km (SPEC: origem no centro do bbox, +x leste, +z sul, y = m x 0,015). Começa na quebra da plataforma continental, 50 km a leste de Vitória, a 90 m sobre o mar, olhando para leste ao longo da cadeia: de 0 a 12 s a água esvazia e o Banco de Vitória (200 km adiante) sai da água enquanto a câmera avança devagar até a borda do talude (os 10 primeiros segundos são o post do X); depois mergulha pelo talude e voa baixo pela planície abissal, ao sul da cadeia, olhando os montes (picos.mjs: Banco de Vitória -327/-32, #14 -187/-36, #10 -114/-5, Jaseur -78/3, Davis -1/17, Dogaressa 81/28, Columbia 304/9), até a Ilha da Trindade (566/-15). fov é o vertical (three): 55 no 9:16. nivel_agua_m e fov só nos keyframes em que mudam.",
+  "keyframes": [
+    {
+      "t": 0,
+      "pos": [-546, 0.65, -37.5],
+      "alvo": [-327, 14, -34],
+      "nivel_agua_m": 0,
+      "fov": 55
+    },
+    {
+      "t": 6,
+      "pos": [-539, 0.7, -37.5],
+      "alvo": [-327, 12, -34]
+    },
+    {
+      "t": 12,
+      "pos": [-528, 0.8, -37.5],
+      "alvo": [-327, 6, -34],
+      "nivel_agua_m": -5500
+    },
+    {
+      "t": 15,
+      "pos": [-516, -7, -30],
+      "alvo": [-410, -12, -20]
+    },
+    {
+      "t": 19,
+      "pos": [-480, -19, -6],
+      "alvo": [-327, -4, -32]
+    },
+    {
+      "t": 23,
+      "pos": [-435, -26, 40],
+      "alvo": [-327, -3, -32]
+    },
+    {
+      "t": 27,
+      "pos": [-378, -31, 70],
+      "alvo": [-300, -2, -5]
+    },
+    {
+      "t": 31,
+      "pos": [-305, -36, 80],
+      "alvo": [-187, -2, -36]
+    },
+    {
+      "t": 35,
+      "pos": [-220, -41, 80],
+      "alvo": [-114, -2, -5]
+    },
+    {
+      "t": 39,
+      "pos": [-128, -45, 74],
+      "alvo": [-1, 0, 17]
+    },
+    {
+      "t": 43,
+      "pos": [-35, -47, 74],
+      "alvo": [81, -2, 28]
+    },
+    {
+      "t": 47,
+      "pos": [65, -46, 82],
+      "alvo": [304, -1, 9]
+    },
+    {
+      "t": 51,
+      "pos": [185, -47, 74],
+      "alvo": [304, -1, 9]
+    },
+    {
+      "t": 55,
+      "pos": [300, -48, 64],
+      "alvo": [566, 7, -15]
+    },
+    {
+      "t": 61,
+      "pos": [455, -46, 30],
+      "alvo": [566, 7, -15],
+      "fov": 55
+    }
+  ]
+}

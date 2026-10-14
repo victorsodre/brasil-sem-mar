@@ -1,0 +1,127 @@
+:root {
+  --ciano: #4ff2ff;
+  --violeta: #9d7bff;
+  --texto: #d9e6ee;
+  --apagado: #7d8f9c;
+  --fundo-ui: rgba(2, 6, 12, 0.62);
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+  color: var(--texto);
+  font: 14px/1.4 "Space Grotesk", "Inter", system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+}
+
+#cena {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  touch-action: none;
+}
+
+#ui {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+#ui[hidden] { display: none; }
+
+#topo {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  left: 16px;
+  right: 16px;
+}
+
+#topo h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #fff;
+  text-shadow: 0 0 18px rgba(79, 242, 255, 0.35);
+}
+
+#topo p {
+  margin: 4px 0 0;
+  color: var(--apagado);
+  font-size: 13px;
+}
+
+#controles {
+  position: absolute;
+  right: 16px;
+  bottom: max(88px, calc(env(safe-area-inset-bottom) + 88px));
+  width: min(300px, calc(100vw - 32px));
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 3px;
+  background: var(--fundo-ui);
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+#controles button {
+  padding: 8px 12px;
+  border: 1px solid rgba(79, 242, 255, 0.5);
+  border-radius: 3px;
+  background: rgba(79, 242, 255, 0.08);
+  color: var(--ciano);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#controles button:hover { background: rgba(79, 242, 255, 0.16); }
+
+.faixa {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--apagado);
+}
+
+.faixa output { color: var(--texto); float: right; }
+
+.faixa input[type="range"] {
+  width: 100%;
+  accent-color: var(--violeta);
+}
+
+#creditos {
+  position: absolute;
+  left: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  max-width: min(420px, calc(100vw - 32px));
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--apagado);
+  pointer-events: auto;
+}
+
+#creditos p { margin: 0 0 3px; }
+
+#creditos a { color: var(--texto); text-decoration: none; border-bottom: 1px solid rgba(217, 230, 238, 0.3); }
+
+#erro {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  padding: 12px;
+  border-radius: 3px;
+  background: rgba(60, 0, 20, 0.85);
+  color: #ffd6e0;
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+
+#erro[hidden] { display: none; }
+
+body.capture #ui, body.capture #erro { display: none; }
+body.capture { cursor: none; }

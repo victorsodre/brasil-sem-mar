@@ -7,3 +7,4 @@ captura/saida/
 *.tif
 *.tiff
 *.nc
+web/variantes/*/quadros/
